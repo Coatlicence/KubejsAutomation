@@ -32,7 +32,8 @@
             textBoxTest = new TextBox();
             button1 = new Button();
             bindingSource1 = new BindingSource(components);
-            searchControl = new ItemSearchControl();
+            searchControlItems = new ItemSearchControl();
+            searchControlFluids = new ItemSearchControl();
             ((System.ComponentModel.ISupportInitialize)bindingSource1).BeginInit();
             SuspendLayout();
             // 
@@ -56,20 +57,30 @@
             button1.UseVisualStyleBackColor = true;
             button1.Click += button1_Click;
             // 
-            // searchControl
+            // searchControlItems
             // 
-            searchControl.Location = new Point(120, 63);
-            searchControl.Name = "searchControl";
-            searchControl.Size = new Size(338, 26);
-            searchControl.TabIndex = 3;
-            searchControl.TabStop = false;
+            searchControlItems.Location = new Point(126, 41);
+            searchControlItems.Name = "searchControlItems";
+            searchControlItems.Size = new Size(338, 26);
+            searchControlItems.TabIndex = 3;
+            searchControlItems.TabStop = false;
+            // 
+            // searchControlFluids
+            // 
+            searchControlFluids.Location = new Point(126, 73);
+            searchControlFluids.Name = "searchControlFluids";
+            searchControlFluids.Size = new Size(338, 26);
+            searchControlFluids.StoringType = ItemSearchControl.eStoringType.fluids;
+            searchControlFluids.TabIndex = 4;
+            searchControlFluids.TabStop = false;
             // 
             // MyForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(653, 268);
-            Controls.Add(searchControl);
+            Controls.Add(searchControlFluids);
+            Controls.Add(searchControlItems);
             Controls.Add(button1);
             Controls.Add(textBoxTest);
             Name = "MyForm";
@@ -85,6 +96,7 @@
         public TextBox textBoxTest;
         private Button button1;
         private BindingSource bindingSource1;
-        private ItemSearchControl searchControl;
+        private ItemSearchControl searchControlItems;
+        private ItemSearchControl searchControlFluids;
     }
 }

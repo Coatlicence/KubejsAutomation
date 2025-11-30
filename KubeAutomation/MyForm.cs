@@ -43,16 +43,18 @@ namespace KubeAutomation
             _ = Program.StartExternalAppAsync(this);
         }
 
-        public void UpdateItemsAndImages(List<string> newItems, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
+        public void UpdateItemsAndImages(List<string> newItems, List<string> newFluids, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<List<string>, Dictionary<string, byte[]>, Dictionary<string, byte[]>>(UpdateItemsAndImages), [newItems, newItemImages, newFluidImages]);
+                this.Invoke(new Action<List<string>, List<string>, Dictionary<string, byte[]>, Dictionary<string, byte[]>>(UpdateItemsAndImages), newItems, newFluids, newItemImages, newFluidImages);
             }
             else
             {
                 // Обновляем UserControl
-                searchControl.UpdateItemsAndImages(newItems, newItemImages, newFluidImages);
+                searchControlItems.UpdateItemsAndImages(newItems, newFluids, newItemImages, newFluidImages);
+                searchControlFluids.UpdateItemsAndImages(newItems, newFluids, newItemImages, newFluidImages);
+
 
                 // Обновляем autoCompleteItems
                 autoCompleteItems.Clear();

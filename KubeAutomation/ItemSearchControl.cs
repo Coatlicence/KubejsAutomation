@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -11,6 +12,32 @@ namespace KubeAutomation
 {
     public partial class ItemSearchControl : UserControl
     {
+        public enum eStoringType
+        {
+            items,
+            fluids
+        }
+
+        // 1. Закрытое поле для хранения значения
+        private eStoringType _storingType = eStoringType.items; // Установите значение по умолчанию тут
+
+        // 2. Открытое свойство с атрибутами
+        [Browsable(true)] // Показывает свойство в панели "Свойства"
+        [DefaultValue(eStoringType.items)] // Указывает значение по умолчанию для отслеживания изменений
+        [Category("Data")] // (Опционально) Помещает свойство в категорию "Data" в панели свойств
+        [Description("Определяет, какие типы данных (предметы или жидкости) должен отображать элемент управления.")] // (Опционально) Добавляет описание
+        public eStoringType StoringType
+        {
+            get { return _storingType; }
+            set
+            {
+                _storingType = value;
+                // Здесь можно добавить логику, которая сработает при изменении типа,
+                // например, перерисовка или очистка данных.
+                // Invalidate(); // Пример: вызвать перерисовку
+                Console.WriteLine($"StoringType changed to: {_storingType}"); // Пример логики
+            }
+        }
         private TextBox searchBox;
         private ListBox autocompleteListBox;
         private bool listBoxVisible = false;
@@ -402,55 +429,21 @@ namespace KubeAutomation
         }
 
         // --- ОБНОВЛЁННЫЙ метод для обновления данных ---
-        public void UpdateItemsAndImages(List<string> newItems, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
+        public void UpdateItemsAndImages(List<string> newItems, List<string> newFluids, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
         {
-            this.items = newItems ?? new List<string>();
-
-            // --- Преобразуем byte[] в Image и кэшируем ---
-            this.itemImages.Clear();
-            if (newItemImages != null)
+            switch (_storingType)
             {
-                foreach (var kvp in newItemImages)
-                {
-                    try
-                    {
-                        using (var ms = new MemoryStream(kvp.Value))
-                        {
-                            // Создаем новый Image объект
-                            var img = Image.FromStream(ms);
-                            // Кэшируем его
-                            this.itemImages[kvp.Key] = img;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Логирование ошибки
-                        // Debug.WriteLine($"Error caching image for item '{kvp.Key}': {ex.Message}");
-                    }
-                }
-            }
+                case eStoringType.items:
+                    UpdateItems(newItems, newItemImages);
+                    break;
 
-            this.fluidImages.Clear();
-            if (newFluidImages != null)
-            {
-                foreach (var kvp in newFluidImages)
-                {
-                    try
-                    {
-                        using (var ms = new MemoryStream(kvp.Value))
-                        {
-                            var img = Image.FromStream(ms);
-                            this.fluidImages[kvp.Key] = img;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        // Логирование ошибки
-                        // Debug.WriteLine($"Error caching fluid image for item '{kvp.Key}': {ex.Message}");
-                    }
-                }
+                case eStoringType.fluids:
+                    UpdateFluids(newFluids, newFluidImages);
+                    break;
+
+                default:
+                    break;
             }
-            // --- Конец изменения ---
 
             // После обновления данных, возможно, нужно обновить отображение, если список открыт
             if (listBoxVisible && !string.IsNullOrEmpty(searchBox.Text))
@@ -460,5 +453,55 @@ namespace KubeAutomation
                 PerformSearch(); // Выполняем поиск сразу, так как данные обновились
             }
         }
+    
+        private void UpdateItems(List<string> newItems, Dictionary<string, byte[]> newItemImages)
+        {
+            this.items = newItems ?? [];
+
+            // --- Преобразуем byte[] в Image и кэшируем ---
+            this.itemImages.Clear();
+            if (newItemImages != null)
+            {
+                foreach (var kvp in newItemImages)
+                {
+                    try
+                    {
+                        using var ms = new MemoryStream(kvp.Value);
+                        var img = Image.FromStream(ms);
+                        this.itemImages[kvp.Key] = img;
+                    }
+                    catch (Exception)
+                    {
+                        // Логирование ошибки
+                        //Debug.WriteLine($"Error caching image for item '{kvp.Key}': {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private void UpdateFluids(List<string> newFluids, Dictionary<string, byte[]> newFluidImages)
+        {
+            this.items = newFluids ?? [];
+
+            this.fluidImages.Clear();
+            if (newFluidImages != null)
+            {
+                foreach (var kvp in newFluidImages)
+                {
+                    try
+                    {
+                        using var ms = new MemoryStream(kvp.Value);
+                        var img = Image.FromStream(ms);
+                        this.fluidImages[kvp.Key] = img;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Логирование ошибки
+                        // Debug.WriteLine($"Error caching fluid image for item '{kvp.Key}': {ex.Message}");
+                    }
+                }
+            }
+        }
+
     }
 }

@@ -244,16 +244,16 @@ class Program
             Console.WriteLine($"Получено {itemIds.Count} ID предметов и {fluidIds.Count} ID жидкостей с изображениями.");
 
             // Объединяем ID и передаём в UI
-            var allIds = new List<string>();
-            allIds.AddRange(itemIds);
-            allIds.AddRange(fluidIds);
+            //var allIds = new List<string>();
+            //allIds.AddRange(itemIds);
+            //allIds.AddRange(fluidIds);
 
             // Сохраняем изображения (если нужно использовать в UI)
             ItemImages = itemImages;
             FluidImages = fluidImages;
 
-            Items = allIds;
-            form?.UpdateItemsAndImages(Items, ItemImages, FluidImages);
+            //Items = allIds;
+            form?.UpdateItemsAndImages(itemIds, fluidIds, ItemImages, FluidImages);
         }
         catch (TimeoutException)
         {
