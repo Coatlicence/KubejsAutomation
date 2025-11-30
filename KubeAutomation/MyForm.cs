@@ -1,32 +1,41 @@
+using System;
+using System.Collections.Generic;
+using System.Windows.Forms;
+
 namespace KubeAutomation
 {
     public partial class MyForm : Form
     {
-
         public AutoCompleteStringCollection autoCompleteItems = [];
+        public AutoCompleteStringCollection autoCompleteRecipes = [];
+
+        // Предполагаем, что эти данные приходят из принимающего кода
+        //static List<string> Items = new List<string>();
+        //static List<string> Recipes = new List<string>();
+        //static Dictionary<string, byte[]> ItemImages = new Dictionary<string, byte[]>();
+        //static Dictionary<string, byte[]> FluidImages = new Dictionary<string, byte[]>();
 
         public MyForm()
         {
             InitializeComponent();
 
-            comboBox1.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
-            comboBox1.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            comboBox1.AutoCompleteCustomSource = autoCompleteItems;
-
-            textBoxTest.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            textBoxTest.AutoCompleteMode = AutoCompleteMode.Suggest;
             textBoxTest.AutoCompleteSource = AutoCompleteSource.CustomSource;
-            textBoxTest.AutoCompleteCustomSource = autoCompleteItems;
+            textBoxTest.AutoCompleteCustomSource = autoCompleteRecipes;
+        }
 
+        private void OnItemSelected(string item)
+        {
+            // Реагируем на выбор элемента (например, выводим в лог)
+            Console.WriteLine($"Выбран элемент: {item}");
         }
 
         private void MyForm_Load(object sender, EventArgs e)
         {
-
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -34,25 +43,42 @@ namespace KubeAutomation
             _ = Program.StartExternalAppAsync(this);
         }
 
-        public void UpdateAutoCompleteSource(List<string> newItems)
+        public void UpdateItemsAndImages(List<string> newItems, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
         {
-            if (this.InvokeRequired) // Проверяем, нужен ли Invoke
+            if (this.InvokeRequired)
             {
-                // Если вызов из другого потока, используем Invoke для выполнения в потоке UI
-                this.Invoke(new Action<List<string>>(UpdateAutoCompleteSource), [newItems]);
+                this.Invoke(new Action<List<string>, Dictionary<string, byte[]>, Dictionary<string, byte[]>>(UpdateItemsAndImages), [newItems, newItemImages, newFluidImages]);
             }
             else
             {
-                // Обновляем коллекцию в потоке UI
-                this.autoCompleteItems.Clear(); // Очищаем старые значения
+                // Обновляем UserControl
+                searchControl.UpdateItemsAndImages(newItems, newItemImages, newFluidImages);
+
+                // Обновляем autoCompleteItems
+                autoCompleteItems.Clear();
                 if (newItems != null)
                 {
-                    this.autoCompleteItems.AddRange([.. newItems]); // Добавляем новые
+                    autoCompleteItems.AddRange([.. newItems]);
                 }
-                // DataSource уже привязан к autoCompleteCollection, обновление коллекции сработает автоматически
-                // Но если не сработает, можно явно указать:
-                comboBox1.AutoCompleteCustomSource = this.autoCompleteItems; // Обычно не обязательно
-                textBoxTest.AutoCompleteCustomSource = this.autoCompleteItems;
+            }
+        }
+
+        public void UpdateRecipes(List<string> newRecipes)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<List<string>>(UpdateRecipes), [newRecipes]);
+            }
+            else
+            {
+                autoCompleteRecipes.Clear();
+
+                if (newRecipes != null)
+                {
+                    autoCompleteRecipes.AddRange([.. newRecipes]);
+                }
+
+                textBoxTest.AutoCompleteCustomSource = autoCompleteRecipes;
             }
         }
     }
