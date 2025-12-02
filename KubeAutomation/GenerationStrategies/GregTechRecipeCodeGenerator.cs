@@ -15,7 +15,7 @@ namespace KubeScriptAutomation.CodeGeneratorStrategies
             new("evaporation", 1, 1, 1, 1),
             new("brewery", 1, 1, 1, 1),
             new("chemical_reactor", 3, 2, 3, 2),
-            new("large_chemical_reactor", 10, 10, 10, 10)
+            new("large_chemical_reactor", 3, 3, 3, 3)
         ];
 
 

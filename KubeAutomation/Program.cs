@@ -13,18 +13,13 @@ using System.Windows.Forms;
 
 class Program
 {
-    static List<string> Items = new List<string>();
-    static List<string> Recipes = new List<string>();
-    static Dictionary<string, byte[]> ItemImages = new Dictionary<string, byte[]>();
-    static Dictionary<string, byte[]> FluidImages = new Dictionary<string, byte[]>();
-
-    static MyForm form = new MyForm();
+    static readonly MyForm form = MyForm.GetInstance();
 
     [STAThread]
-    static async Task Main(string[] args)
+    static async Task Main()
     {
         // Запускаем форму в отдельном потоке
-        Thread formThread = new Thread(() =>
+        Thread formThread = new(() =>
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -42,6 +37,9 @@ class Program
         var codeGenerator = new GregTechRecipeCodeGenerator();
         var fileSaver = new RecipeFileSaver();
 
+        _ = StartExternalAppAsync();
+
+
         while (true)
         {
             Console.WriteLine("\nХотите создать новый рецепт? (да/нет/получить)");
@@ -50,6 +48,7 @@ class Program
 
             if (res == "получить" || res == "п" || res == "g" || res == "get")
             {
+                // перенесено в форму
                 //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
             }
 
@@ -74,15 +73,17 @@ class Program
     }
 
     // Асинхронная функция для запуска внешнего приложения и получения данных из именного канала
-    public static async Task StartExternalAppAsync(MyForm form)
+    public static async Task StartExternalAppAsync()
     {
         //const string pipeName = "MyMinecraftItemsPipe"; // Не используется напрямую теперь
         //string logPath = "C:\\Users\\nojda\\AppData\\Roaming\\.tlauncher\\legacy\\Minecraft\\game\\logs\\debug.log"; // Не нужно
 
+        await Task.Delay(1000);
+
         var processStartInfo = new System.Diagnostics.ProcessStartInfo
         {
             FileName = @"C:\Users\nojda\source\repos\LogExtractor\LogExtractor\bin\Debug\net8.0\LogExtractor.exe",
-            Arguments = "all", // Теперь передаём "all", чтобы получить всё
+            Arguments = "all",
             UseShellExecute = false,
             CreateNoWindow = true,
             RedirectStandardOutput = false,
@@ -243,17 +244,8 @@ class Program
 
             Console.WriteLine($"Получено {itemIds.Count} ID предметов и {fluidIds.Count} ID жидкостей с изображениями.");
 
-            // Объединяем ID и передаём в UI
-            //var allIds = new List<string>();
-            //allIds.AddRange(itemIds);
-            //allIds.AddRange(fluidIds);
 
-            // Сохраняем изображения (если нужно использовать в UI)
-            ItemImages = itemImages;
-            FluidImages = fluidImages;
-
-            //Items = allIds;
-            form?.UpdateItemsAndImages(itemIds, fluidIds, ItemImages, FluidImages);
+            MyForm.GetInstance().UpdateData(itemImages, fluidImages);
         }
         catch (TimeoutException)
         {
@@ -331,10 +323,9 @@ class Program
 
             if (recipes != null)
             {
-                Recipes = recipes;
                 Console.WriteLine($"Получено {recipes.Count} ID рецептов.");
 
-                form?.UpdateRecipes(Recipes);
+                MyForm.GetInstance().UpdateRecipes(recipes);
             }
         }
         catch (TimeoutException)

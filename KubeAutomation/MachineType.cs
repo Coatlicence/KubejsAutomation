@@ -9,26 +9,17 @@ using System.Threading.Tasks;
 
 namespace KubeScriptAutomation
 {
-    public struct MachineType
+    public readonly struct MachineType(string name, uint liquidCount, uint itemCount, uint liquidOut, uint itemOut)
     {
-        public MachineType(string name, uint liquidCount, uint itemCount, uint liquidOut, uint itemOut)
-        {
-            Name = name;
-            LiquidCount = liquidCount;
-            ItemCount = itemCount;
-            LiquidOut = liquidOut;
-            ItemOut = itemOut;
-        }
+        public string Name { get; } = name;
 
-        public string Name { get; }
+        public uint ItemCount { get; } = itemCount;
 
-        public uint ItemCount { get; }
+        public uint ItemOut { get; } = itemOut;
 
-        public uint ItemOut { get; }
+        public uint LiquidCount { get; } = liquidCount;
 
-        public uint LiquidCount { get; }
-
-        public uint LiquidOut { get; }
+        public uint LiquidOut { get; } = liquidOut;
 
     }
 }

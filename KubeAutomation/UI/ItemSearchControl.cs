@@ -4,49 +4,17 @@ using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-//using System.Threading;
-//using System.Windows.Forms;
 using System.Windows.Forms;
 
 namespace KubeAutomation
 {
     public partial class ItemSearchControl : UserControl
     {
-        public enum eStoringType
-        {
-            items,
-            fluids
-        }
+        private Dictionary<string, Image> _dataImages = [];
 
-        // 1. Закрытое поле для хранения значения
-        private eStoringType _storingType = eStoringType.items; // Установите значение по умолчанию тут
-
-        // 2. Открытое свойство с атрибутами
-        [Browsable(true)] // Показывает свойство в панели "Свойства"
-        [DefaultValue(eStoringType.items)] // Указывает значение по умолчанию для отслеживания изменений
-        [Category("Data")] // (Опционально) Помещает свойство в категорию "Data" в панели свойств
-        [Description("Определяет, какие типы данных (предметы или жидкости) должен отображать элемент управления.")] // (Опционально) Добавляет описание
-        public eStoringType StoringType
-        {
-            get { return _storingType; }
-            set
-            {
-                _storingType = value;
-                // Здесь можно добавить логику, которая сработает при изменении типа,
-                // например, перерисовка или очистка данных.
-                // Invalidate(); // Пример: вызвать перерисовку
-                Console.WriteLine($"StoringType changed to: {_storingType}"); // Пример логики
-            }
-        }
         private TextBox searchBox;
         private ListBox autocompleteListBox;
         private bool listBoxVisible = false;
-
-        // Свойства для хранения данных
-        private List<string> items = new List<string>();
-        // Кэшируем изображения как Image объекты, а не byte[]
-        private Dictionary<string, Image> itemImages = new Dictionary<string, Image>();
-        private Dictionary<string, Image> fluidImages = new Dictionary<string, Image>();
 
         // Событие, которое будет вызываться при выборе элемента
         public event Action<string> ItemSelected;
@@ -54,7 +22,7 @@ namespace KubeAutomation
         // --- Добавляем поля для оптимизации ---
         private System.Windows.Forms.Timer searchTimer; // Для Debouncing
         private string lastSearchText = ""; // Для отслеживания последнего поискового запроса
-        private List<string> lastMatches = new List<string>(); // Для отслеживания последних совпадений
+        private List<string> lastMatches = []; // Для отслеживания последних совпадений
 
         public ItemSearchControl()
         {
@@ -136,17 +104,12 @@ namespace KubeAutomation
                 {
                     parentForm.Controls.Remove(autocompleteListBox);
                     // Освобождаем кэшированные изображения
-                    foreach (var img in itemImages.Values) { img?.Dispose(); }
-                    foreach (var img in fluidImages.Values) { img?.Dispose(); }
-                    itemImages.Clear();
-                    fluidImages.Clear();
+                    foreach (var img in _dataImages.Values) { img?.Dispose(); }
+                    _dataImages.Clear();
                     autocompleteListBox?.Dispose();
                 }
                 // Освобождаем ресурсы, созданные через Designer
-                if (components != null)
-                {
-                    components.Dispose();
-                }
+                components?.Dispose();
             }
             base.Dispose(disposing);
         }
@@ -169,11 +132,11 @@ namespace KubeAutomation
             {
                 // Если текст не изменился, не пересчитываем
                 // Но возможно, нужно обновить видимость/позицию
-                if (!listBoxVisible && lastMatches.Any())
+                if (!listBoxVisible && lastMatches.Count != 0)
                 {
                     ShowListBox(lastMatches);
                 }
-                else if (listBoxVisible && !lastMatches.Any())
+                else if (listBoxVisible && lastMatches.Count == 0)
                 {
                     HideListBox();
                 }
@@ -193,12 +156,12 @@ namespace KubeAutomation
             }
 
             // Выполняем поиск
-            var matches = items.Where(x => x.Contains(input, StringComparison.OrdinalIgnoreCase)).ToList();
+            var matches = _dataImages.Keys.Where(x => x.Contains(input, StringComparison.OrdinalIgnoreCase)).ToList();
 
             lastSearchText = input;
             lastMatches = matches; // Сохраняем результаты
 
-            if (matches.Any())
+            if (matches.Count != 0)
             {
                 ShowListBox(matches);
             }
@@ -252,17 +215,11 @@ namespace KubeAutomation
             }
         }
 
-
         private void SearchBox_TextChanged(object? sender, EventArgs e)
         {
-            // --- Вместо выполнения поиска сразу ---
-            // string input = searchBox.Text;
-            // ... (старая логика поиска)
-
             // --- Запускаем таймер для Debouncing ---
             searchTimer.Stop(); // Сбрасываем таймер при каждом изменении
             searchTimer.Start(); // Запускаем его заново
-            // --- Конец замены ---
         }
 
         protected override void OnResize(EventArgs e)
@@ -305,13 +262,9 @@ namespace KubeAutomation
 
             // --- Используем кэшированные Image объекты ---
             Image? img = null;
-            if (itemImages.TryGetValue(itemText, out var cachedItemImage))
+            if (_dataImages.TryGetValue(itemText, out var cachedImage))
             {
-                img = cachedItemImage;
-            }
-            else if (fluidImages.TryGetValue(itemText, out var cachedFluidImage))
-            {
-                img = cachedFluidImage;
+                img = cachedImage;
             }
             // --- Конец изменения ---
 
@@ -428,21 +381,13 @@ namespace KubeAutomation
             }
         }
 
-        // --- ОБНОВЛЁННЫЙ метод для обновления данных ---
-        public void UpdateItemsAndImages(List<string> newItems, List<string> newFluids, Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)
+        // --- НОВЫЙ метод для обновления данных ---
+        public void UpdateData(Dictionary<string, Image> data)
         {
-            switch (_storingType)
+            this._dataImages.Clear();
+            if (data != null)
             {
-                case eStoringType.items:
-                    UpdateItems(newItems, newItemImages);
-                    break;
-
-                case eStoringType.fluids:
-                    UpdateFluids(newFluids, newFluidImages);
-                    break;
-
-                default:
-                    break;
+                this._dataImages = new Dictionary<string, Image>(data);
             }
 
             // После обновления данных, возможно, нужно обновить отображение, если список открыт
@@ -453,22 +398,20 @@ namespace KubeAutomation
                 PerformSearch(); // Выполняем поиск сразу, так как данные обновились
             }
         }
-    
-        private void UpdateItems(List<string> newItems, Dictionary<string, byte[]> newItemImages)
-        {
-            this.items = newItems ?? [];
 
-            // --- Преобразуем byte[] в Image и кэшируем ---
-            this.itemImages.Clear();
-            if (newItemImages != null)
+        // --- ОПЦИОНАЛЬНО: Метод для обновления из byte[] ---
+        public void UpdateDataFromBytes(Dictionary<string, byte[]> data)
+        {
+            var imageDict = new Dictionary<string, Image>();
+            if (data != null)
             {
-                foreach (var kvp in newItemImages)
+                foreach (var kvp in data)
                 {
                     try
                     {
                         using var ms = new MemoryStream(kvp.Value);
                         var img = Image.FromStream(ms);
-                        this.itemImages[kvp.Key] = img;
+                        imageDict[kvp.Key] = img;
                     }
                     catch (Exception)
                     {
@@ -477,31 +420,7 @@ namespace KubeAutomation
                     }
                 }
             }
+            UpdateData(imageDict);
         }
-
-        private void UpdateFluids(List<string> newFluids, Dictionary<string, byte[]> newFluidImages)
-        {
-            this.items = newFluids ?? [];
-
-            this.fluidImages.Clear();
-            if (newFluidImages != null)
-            {
-                foreach (var kvp in newFluidImages)
-                {
-                    try
-                    {
-                        using var ms = new MemoryStream(kvp.Value);
-                        var img = Image.FromStream(ms);
-                        this.fluidImages[kvp.Key] = img;
-                    }
-                    catch (Exception ex)
-                    {
-                        // Логирование ошибки
-                        // Debug.WriteLine($"Error caching fluid image for item '{kvp.Key}': {ex.Message}");
-                    }
-                }
-            }
-        }
-
     }
 }
