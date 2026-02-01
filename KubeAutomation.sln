@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.9.34622.214
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KubeAutomation", "KubeAutomation\KubeAutomation.csproj", "{911909F3-F113-4924-9568-76EE08D7D9EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogExtractorLibrary", "..\LogExtractorLibrary\LogExtractorLibrary\LogExtractorLibrary.csproj", "{40879565-8479-82A9-985B-C7A0A0E271E4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{911909F3-F113-4924-9568-76EE08D7D9EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{911909F3-F113-4924-9568-76EE08D7D9EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{911909F3-F113-4924-9568-76EE08D7D9EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40879565-8479-82A9-985B-C7A0A0E271E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40879565-8479-82A9-985B-C7A0A0E271E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40879565-8479-82A9-985B-C7A0A0E271E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40879565-8479-82A9-985B-C7A0A0E271E4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

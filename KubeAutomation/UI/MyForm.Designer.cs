@@ -54,18 +54,20 @@
             panelWithStrategies.Controls.Add(searchControlFluids);
             panelWithStrategies.Dock = DockStyle.Top;
             panelWithStrategies.Location = new Point(0, 0);
+            panelWithStrategies.Margin = new Padding(4, 5, 4, 5);
             panelWithStrategies.Name = "panelWithStrategies";
-            panelWithStrategies.Padding = new Padding(1);
-            panelWithStrategies.Size = new Size(722, 46);
+            panelWithStrategies.Padding = new Padding(1, 2, 1, 2);
+            panelWithStrategies.Size = new Size(1031, 77);
             panelWithStrategies.TabIndex = 6;
             panelWithStrategies.WrapContents = false;
             // 
             // buttonUpdateData
             // 
             buttonUpdateData.AutoSize = true;
-            buttonUpdateData.Location = new Point(4, 4);
+            buttonUpdateData.Location = new Point(5, 7);
+            buttonUpdateData.Margin = new Padding(4, 5, 4, 5);
             buttonUpdateData.Name = "buttonUpdateData";
-            buttonUpdateData.Size = new Size(81, 25);
+            buttonUpdateData.Size = new Size(164, 58);
             buttonUpdateData.TabIndex = 2;
             buttonUpdateData.Text = "ОБНОВИТЬ";
             buttonUpdateData.UseVisualStyleBackColor = true;
@@ -74,9 +76,10 @@
             // buttonGotoRecipeGeneration
             // 
             buttonGotoRecipeGeneration.AutoSize = true;
-            buttonGotoRecipeGeneration.Location = new Point(91, 4);
+            buttonGotoRecipeGeneration.Location = new Point(177, 7);
+            buttonGotoRecipeGeneration.Margin = new Padding(4, 5, 4, 5);
             buttonGotoRecipeGeneration.Name = "buttonGotoRecipeGeneration";
-            buttonGotoRecipeGeneration.Size = new Size(101, 25);
+            buttonGotoRecipeGeneration.Size = new Size(213, 58);
             buttonGotoRecipeGeneration.TabIndex = 0;
             buttonGotoRecipeGeneration.Text = "Создать рецепт";
             buttonGotoRecipeGeneration.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -86,9 +89,10 @@
             // buttonGotoRecipeModification
             // 
             buttonGotoRecipeModification.AutoSize = true;
-            buttonGotoRecipeModification.Location = new Point(198, 4);
+            buttonGotoRecipeModification.Location = new Point(398, 7);
+            buttonGotoRecipeModification.Margin = new Padding(4, 5, 4, 5);
             buttonGotoRecipeModification.Name = "buttonGotoRecipeModification";
-            buttonGotoRecipeModification.Size = new Size(112, 25);
+            buttonGotoRecipeModification.Size = new Size(233, 58);
             buttonGotoRecipeModification.TabIndex = 1;
             buttonGotoRecipeModification.Text = "Изменить рецепт";
             buttonGotoRecipeModification.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -98,9 +102,10 @@
             // buttonGotoItemCreation
             // 
             buttonGotoItemCreation.AutoSize = true;
-            buttonGotoItemCreation.Location = new Point(316, 4);
+            buttonGotoItemCreation.Location = new Point(639, 7);
+            buttonGotoItemCreation.Margin = new Padding(4, 5, 4, 5);
             buttonGotoItemCreation.Name = "buttonGotoItemCreation";
-            buttonGotoItemCreation.Size = new Size(112, 25);
+            buttonGotoItemCreation.Size = new Size(230, 58);
             buttonGotoItemCreation.TabIndex = 2;
             buttonGotoItemCreation.Text = "Создать предмет";
             buttonGotoItemCreation.TextImageRelation = TextImageRelation.ImageAboveText;
@@ -108,17 +113,19 @@
             // 
             // searchControlItems
             // 
-            searchControlItems.Location = new Point(434, 4);
+            searchControlItems.Location = new Point(879, 10);
+            searchControlItems.Margin = new Padding(6, 8, 6, 8);
             searchControlItems.Name = "searchControlItems";
-            searchControlItems.Size = new Size(222, 26);
+            searchControlItems.Size = new Size(317, 43);
             searchControlItems.TabIndex = 3;
             searchControlItems.TabStop = false;
             // 
             // searchControlFluids
             // 
-            searchControlFluids.Location = new Point(662, 4);
+            searchControlFluids.Location = new Point(1208, 10);
+            searchControlFluids.Margin = new Padding(6, 8, 6, 8);
             searchControlFluids.Name = "searchControlFluids";
-            searchControlFluids.Size = new Size(338, 26);
+            searchControlFluids.Size = new Size(483, 43);
             searchControlFluids.TabIndex = 4;
             searchControlFluids.TabStop = false;
             // 
@@ -127,22 +134,23 @@
             groupBoxWithStrategiesOnControl.AutoSize = true;
             groupBoxWithStrategiesOnControl.AutoSizeMode = AutoSizeMode.GrowAndShrink;
             groupBoxWithStrategiesOnControl.Dock = DockStyle.Fill;
-            groupBoxWithStrategiesOnControl.Location = new Point(0, 46);
-            groupBoxWithStrategiesOnControl.Margin = new Padding(10);
+            groupBoxWithStrategiesOnControl.Location = new Point(0, 77);
+            groupBoxWithStrategiesOnControl.Margin = new Padding(14, 17, 14, 17);
             groupBoxWithStrategiesOnControl.Name = "groupBoxWithStrategiesOnControl";
-            groupBoxWithStrategiesOnControl.Padding = new Padding(10);
-            groupBoxWithStrategiesOnControl.Size = new Size(722, 371);
+            groupBoxWithStrategiesOnControl.Padding = new Padding(14, 17, 14, 17);
+            groupBoxWithStrategiesOnControl.Size = new Size(1031, 618);
             groupBoxWithStrategiesOnControl.TabIndex = 9;
             groupBoxWithStrategiesOnControl.TabStop = false;
             groupBoxWithStrategiesOnControl.Text = "CodeGenerationStrategy";
             // 
             // MyForm
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(722, 417);
+            ClientSize = new Size(1031, 695);
             Controls.Add(groupBoxWithStrategiesOnControl);
             Controls.Add(panelWithStrategies);
+            Margin = new Padding(4, 5, 4, 5);
             Name = "MyForm";
             Text = "Form1";
             Load += MyForm_Load;

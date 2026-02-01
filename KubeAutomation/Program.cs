@@ -10,6 +10,7 @@ using KubeScriptAutomation;
 using KubeScriptAutomation.Collectos;
 using KubeAutomation;
 using System.Windows.Forms;
+using LogExtractorLibrary;
 
 class Program
 {
@@ -37,7 +38,7 @@ class Program
         var codeGenerator = new GregTechRecipeCodeGenerator();
         var fileSaver = new RecipeFileSaver();
 
-        _ = StartExternalAppAsync();
+        //_ = StartExternalAppAsync();
 
 
         while (true)
@@ -50,6 +51,22 @@ class Program
             {
                 // перенесено в форму
                 //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
+            }
+
+            if (res == "пр" || res == "gr")
+            {
+                try
+                {
+                    var extractor = new RecipesExtractor();
+                    Console.WriteLine($"Экстрактор готов к работе: {extractor.IsValid()}.");
+
+                    var recipes = await extractor.ExtractAsync();
+                    Console.WriteLine($"Получено {recipes.Count} рецептов.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка при извлечении рецептов: {ex.Message}");
+                }
             }
 
             if (res == "н" || res == "нет" || res == "n" || res == "no")
