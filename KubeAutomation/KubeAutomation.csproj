@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Esprima" Version="3.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\LogExtractorLibrary\LogExtractorLibrary\LogExtractorLibrary.csproj" />
   </ItemGroup>
 

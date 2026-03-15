@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeScriptAutomation;
 
-namespace KubeScriptAutomation.CodeGeneratorStrategies
+namespace KubeAutomation.GenerationStrategies.Generators
 {
-
-    internal class GregTechRecipeCodeGenerator : IRecipeCodeGenerator
+    public static class GregTechRecipeCodeGenerator
     {
         public static List<MachineType> Machines { get; } =
         [
@@ -18,13 +19,12 @@ namespace KubeScriptAutomation.CodeGeneratorStrategies
             new("large_chemical_reactor", 3, 3, 3, 3)
         ];
 
-
-
-        public string Generate(RecipeConfiguration config)
+        public static string Generate(GregTechRecipeConfiguration config)
         {
+            config.Validate();
+
             var lines = new List<string>
             {
-            $"{config.RecipeType.EventPrefix}((event) => {{",
             "    event.recipes.gtceu",
             $"        .{config.MachineType.Name}(`{config.RecipeId}`)"
             };
@@ -72,16 +72,17 @@ namespace KubeScriptAutomation.CodeGeneratorStrategies
             // Всегда добавляем базовые параметры
             lines.Add($"        .duration({config.DurationSeconds}*20)");
             lines.Add($"        .EUt({config.EUt});");
-            lines.Add("});");
+
 
             return string.Join(Environment.NewLine, lines);
         }
 
+        // ТОЛЬКО ДЛЯ CLI. в UI он не требуется.
         public class RecipeInputCollector : DataCollector
         {
-            public override RecipeConfiguration Collect()
+            public override GregTechRecipeConfiguration Collect()
             {
-                var config = new RecipeConfiguration { RecipeType = new ServerRecipeType() };
+                var config = new GregTechRecipeConfiguration { RecipeType = new ServerRecipeType() };
 
                 Console.WriteLine("\n=== Создание нового рецепта GregTech ===");
                 config.RecipeId = Prompt("Введите ID рецепта (например, salt_water_from_water):");

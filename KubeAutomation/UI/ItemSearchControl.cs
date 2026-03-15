@@ -66,7 +66,7 @@ namespace KubeAutomation
             // --- Инициализируем Timer для Debouncing ---
             searchTimer = new System.Windows.Forms.Timer
             {
-                Interval = 100 // 200 миллисекунд
+                Interval = 100 // 100 миллисекунд
             };
             searchTimer.Tick += (s, e) =>
             {

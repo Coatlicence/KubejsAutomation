@@ -1,4 +1,4 @@
-﻿using KubeScriptAutomation.CodeGeneratorStrategies;
+﻿using KubeAutomation.GenerationStrategies.Generators;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

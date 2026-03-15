@@ -4,14 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-using KubeScriptAutomation.CodeGeneratorStrategies;
-
+using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
 namespace KubeScriptAutomation.Collectos
 {
-    internal abstract class DataCollector
+    public abstract class DataCollector
     {
-        public abstract RecipeConfiguration Collect();
+        public abstract GregTechRecipeConfiguration Collect();
 
         // Выводит сообщение в консоль и требует текстовый ввод
         protected string Prompt(string message)
@@ -26,16 +25,44 @@ namespace KubeScriptAutomation.Collectos
             while (true)
             {
                 Console.WriteLine(message);
-                if (int.TryParse(Console.ReadLine(), out int value) && value > 0)
+                Console.WriteLine("Диапозон: [1, 2147483647]");
+
+                var valueStr = Console.ReadLine();
+
+                bool parsed = int.TryParse(valueStr, out int value);
+                bool valueBiggerZero = value > 0;
+
+                if (parsed && valueBiggerZero)
                     return value;
-                Console.WriteLine("Пожалуйста, введите положительное целое число.");
+                Console.WriteLine("Пожалуйста, введите положительное целое число без разделителей в указанном диапазоне!");
+            }
+        }
+
+        // Запрос позитивного числа с включительными границами
+        protected int PromptPositiveInt(string message, int minInclusive, int maxInclusive)
+        {
+            while (true)
+            {
+                Console.WriteLine(message);
+                Console.WriteLine($"Диапазон включительный: [{minInclusive}, {maxInclusive}]");
+
+                var valueStr = Console.ReadLine();
+
+                bool parsed = int.TryParse(valueStr, out int value);
+                bool valueBiggerMin    = value >= minInclusive;
+                bool valueLowerMax     = value <= maxInclusive;
+                bool valueCorrect   = valueBiggerMin && valueLowerMax;
+
+                if (parsed && valueCorrect)
+                    return value;
+                Console.WriteLine("Пожалуйста, введите целое число в указанном диапазоне и без разделителей!");
             }
         }
 
         protected List<ItemComponent> CollectItemComponents(string type, uint maxItems)
         {
             var items = new List<ItemComponent>();
-            Console.WriteLine($"Введите {type} предметы (формат: '4x gtceu:fertilizer') или 'готово' для завершения (макс {maxItems}):");
+            Console.WriteLine($"Введите предметы (формат: '4x gtceu:fertilizer') или 'готово' для завершения (макс {maxItems}):");
 
             while (items.Count < maxItems)
             {
@@ -46,7 +73,7 @@ namespace KubeScriptAutomation.Collectos
 
                 if (TryParseItemInput(input, out int amount, out string itemId))
                 {
-                    items.Add(new ItemComponent { Amount = amount, ItemId = itemId });
+                    items.Add(new ItemComponent(amount, itemId));
                 }
                 else
                 {
@@ -86,7 +113,7 @@ namespace KubeScriptAutomation.Collectos
                 if (string.IsNullOrEmpty(id) || id.ToLower() == "готово" || id.ToLower() == "done" || id.ToLower() == "d")
                     break;
 
-                int amount = PromptPositiveInt($"Введите количество {type} жидкости {id} в mB:");
+                int amount = PromptPositiveInt($"Введите количество жидкости {id} в mB:", 1, 4000);
                 fluids.Add(new FluidComponent { FluidId = id, Amount = amount });
             }
 

@@ -1,4 +1,5 @@
 using KubeAutomation.UI;
+using LogExtractorLibrary;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
@@ -99,9 +100,13 @@ namespace KubeAutomation
         {
         }
 
-        private void buttonUpdateData_Click(object sender, EventArgs e)
+        private async void buttonUpdateData_Click(object sender, EventArgs e)
         {
             _ = Program.StartExternalAppAsync();
+
+
+            ItemFluidWithIconExtractor s = new();
+            await s.ExtractAsync();
         }
 
         public void UpdateData(Dictionary<string, byte[]> newItemImages, Dictionary<string, byte[]> newFluidImages)

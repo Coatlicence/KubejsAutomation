@@ -1,24 +1,36 @@
+using KubeAutomation;
+using KubeAutomation.FileSaveStrategies;
+using KubeAutomation.GenerationStrategies.Generators;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeScriptAutomation;
+using KubeScriptAutomation.Collectos;
+using LogExtractorLibrary;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes; // Добавлено для NamedPipeClientStream
 using System.Linq;
-using System.Threading.Tasks;
 using System.Text.Json; // Добавлено для десериализации
-using KubeScriptAutomation.CodeGeneratorStrategies;
-using KubeScriptAutomation;
-using KubeScriptAutomation.Collectos;
-using KubeAutomation;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using LogExtractorLibrary;
+using Esprima;
+using Esprima.Ast;
 
 class Program
 {
-    static readonly MyForm form = MyForm.GetInstance();
+     static readonly MyForm form = MyForm.GetInstance();
 
     [STAThread]
     static async Task Main()
     {
+        /// Проверка
+        ///
+        // Тест Esprima
+        var parser = new JavaScriptParser();
+        var ast = parser.ParseScript("event.recipes.gtceu.assembler('test');");
+        Console.WriteLine($"✅ Esprima работает! Узлов в AST: {ast.Body.Count}");
+        Console.ReadLine();
+
         // Запускаем форму в отдельном потоке
         Thread formThread = new(() =>
         {
@@ -35,11 +47,7 @@ class Program
         Console.WriteLine("===============================================");
 
         var inputCollector = new GregTechRecipeCodeGenerator.RecipeInputCollector();
-        var codeGenerator = new GregTechRecipeCodeGenerator();
         var fileSaver = new RecipeFileSaver();
-
-        //_ = StartExternalAppAsync();
-
 
         while (true)
         {
@@ -51,6 +59,17 @@ class Program
             {
                 // перенесено в форму
                 //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
+            }
+
+            if (res == "t")
+            {
+                Console.WriteLine("deleting last");
+
+                var s = new FileSaverToEnd();
+
+                var di = "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы\\test\\";
+
+                s.Save("test", di, "test.js");
             }
 
             if (res == "пр" || res == "gr")
@@ -75,8 +94,22 @@ class Program
             try
             {
                 var config = inputCollector.Collect();
-                string script = codeGenerator.Generate(config);
-                fileSaver.Save(script, config);
+                string script = GregTechRecipeCodeGenerator.Generate(config);
+
+                string? dir = null;
+                while (dir == null)
+                {
+                    Console.WriteLine("Введите путь сохранения");
+                    dir = Console.ReadLine()?.Trim();
+
+                    if (dir == "н" || dir == "нет" || dir == "n" || dir == "no")
+                    {
+                        dir = "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы";
+                        break;
+                    }
+                }
+                
+                fileSaver.Save(script, config.RecipeId, dir);
 
                 Console.WriteLine("\nРецепт успешно создан!");
             }
@@ -85,6 +118,8 @@ class Program
                 Console.WriteLine($"Ошибка при создании рецепта: {ex.Message}");
             }
         }
+        ServerRecipeType s2 = new();
+        Console.WriteLine(EmptyFunctionGenerator.GenerateTitle(s2));
 
         Console.WriteLine("Программа завершена.");
     }
@@ -381,5 +416,46 @@ class Program
                 catch { /* Игнорируем ошибки при завершении */ }
             }
         }
+    }
+
+    private static void Test1()
+    {
+        WorkbenchRecipeConfiguration config1 = new();
+
+        config1.itemOutput = new ItemComponent(2, "create:white_sail");
+
+        WorkbenchRecipeConfiguration.WorkbenchCraftGrid grid = new(" DD", "NAN", "SSS");
+
+        Dictionary<char, string> keymap = [];
+        keymap.Add('S', "minecraft:stick");
+        keymap.Add('N', "minecraft:iron_nugget");
+        keymap.Add('A', "#forge:wool");
+        keymap.Add('D', "mine");
+
+        WorkbenchRecipeConfiguration.RecipePattern pattern = new(grid, keymap);
+
+        Console.WriteLine(pattern.ToString());
+
+        config1.Validate();
+    }
+
+    private static void Test2()
+    {
+        var conf = new GregTechRecipeConfiguration();
+
+        conf.EUt = 10;
+        conf.DurationSeconds = 1;
+
+        conf.InputFluids.Add(new FluidComponent("test", 1));
+        conf.OutputFluids.Add(new FluidComponent("test1", 1));
+        conf.MachineType = GregTechRecipeCodeGenerator.Machines[0];
+
+        conf.Validate();
+
+        var script1 = GregTechRecipeCodeGenerator.Generate(conf);
+        var saver = new FileSaverToEnd();
+
+        saver.Save(script1, "teststamp", "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы");
+
     }
 }
