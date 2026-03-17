@@ -28,8 +28,32 @@ class Program
         // Тест Esprima
         var parser = new JavaScriptParser();
         var ast = parser.ParseScript("event.recipes.gtceu.assembler('test');");
-        Console.WriteLine($"✅ Esprima работает! Узлов в AST: {ast.Body.Count}");
+        Console.WriteLine($"Esprima работает! Узлов в AST: {ast.Body.Count}");
         Console.ReadLine();
+
+        /// Проверка
+        /// Тест WorkbenchRecipeConfiguration
+        var config12 = new WorkbenchRecipeConfiguration
+        {
+            RecipeId = "stone_bricks",
+            itemOutput = new ItemComponent(3, "minecraft:stone_bricks"),
+            pattern = new RecipePattern
+            (
+                new WorkbenchCraftGrid("SS ", "SS ", "   "),
+                new Dictionary<char, string>
+                {
+                    ['S'] = "minecraft:stone"
+                }
+            )
+        };
+
+        var qwerty = WorkbenchRecipeCodeGenerator.Generate(config12);
+
+        Console.WriteLine(qwerty);
+
+        var fileSaver1 = new RecipeFileSaver();
+
+        fileSaver1.Save(qwerty, "test", "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы");
 
         // Запускаем форму в отдельном потоке
         Thread formThread = new(() =>
@@ -424,7 +448,7 @@ class Program
 
         config1.itemOutput = new ItemComponent(2, "create:white_sail");
 
-        WorkbenchRecipeConfiguration.WorkbenchCraftGrid grid = new(" DD", "NAN", "SSS");
+        WorkbenchCraftGrid grid = new(" DD", "NAN", "SSS");
 
         Dictionary<char, string> keymap = [];
         keymap.Add('S', "minecraft:stick");
@@ -432,7 +456,7 @@ class Program
         keymap.Add('A', "#forge:wool");
         keymap.Add('D', "mine");
 
-        WorkbenchRecipeConfiguration.RecipePattern pattern = new(grid, keymap);
+        RecipePattern pattern = new(grid, keymap);
 
         Console.WriteLine(pattern.ToString());
 
