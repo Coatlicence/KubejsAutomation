@@ -56,5 +56,13 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
     {
         public int Amount { get; set; } = amount;
         public string ItemId { get; set; } = itemId;
+
+        public string ToJsString()
+        {
+            var escapedId = ItemId.Replace("\\", "\\\\").Replace("'", "\\'");
+            return Amount > 1 ? $"{Amount}x {escapedId}" : escapedId;
+        }
+
+        public override string ToString() => ToJsString();  // Для обратной совместимости
     }
 }
