@@ -17,7 +17,7 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         public List<ItemComponent> InputItems { get; set; } = new List<ItemComponent>();
         public List<ItemComponent> OutputItems { get; set; } = new List<ItemComponent>();
         public int? CircuitSetting { get; set; }
-        public string NotConsumableItemId { get; set; }
+        public string? NotConsumableItemId { get; set; }
         public int DurationSeconds { get; set; }
         public int EUt { get; set; }
         public IRecipeType RecipeType { get; set; }

@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
 namespace KubeAutomation.GenerationStrategies.Generators
 {
@@ -9,9 +10,11 @@ namespace KubeAutomation.GenerationStrategies.Generators
         String, Int, Float, Bool, Object, Array
     }
 
-    public class CustomRecipeConfig
+    public class CustomRecipeConfig : BaseRecipeConfiguration
     {
         private readonly JsonObject _root;
+
+        public override string RecipeTypeId => "custom";
 
         public CustomRecipeConfig()
         {
@@ -20,9 +23,17 @@ namespace KubeAutomation.GenerationStrategies.Generators
 
         /// <summary>
         /// 1. Создать свойство с типом
+        /// Теперь корректно работает с путями типа "pattern[0]", "sequence[1].ingredients[0].item"
         /// </summary>
         public void CreateProperty(string path, JsonType type)
         {
+            // Если путь содержит индекс массива — используем специальный метод
+            if (path.Contains("["))
+            {
+                CreatePropertyWithArrayIndex(path, type);
+                return;
+            }
+
             var (parent, name) = SplitPath(path);
             var parentObj = GetOrCreateObject(parent);
 
@@ -39,24 +50,160 @@ namespace KubeAutomation.GenerationStrategies.Generators
         }
 
         /// <summary>
+        /// Новый метод: создание свойства с индексом массива
+        /// </summary>
+        /// <summary>
+        /// Создание свойства с поддержкой индексов массивов
+        /// Корректно обрабатывает: "pattern[0]", "sequence[0].ingredients", "sequence[0].ingredients[0].item"
+        /// </summary>
+        private void CreatePropertyWithArrayIndex(string path, JsonType type)
+        {
+            var segments = ParsePathSegments(path);
+            JsonNode? current = _root;
+
+            for (int i = 0; i < segments.Count; i++)
+            {
+                var segment = segments[i];
+                bool isLast = (i == segments.Count - 1);
+
+                if (TryParseIndex(segment, out var name, out var index))
+                {
+                    // Сегмент с индексом: "sequence[0]"
+                    var array = GetOrCreateArray(current, name);
+                    EnsureArraySize(array, index + 1);
+
+                    if (isLast)
+                    {
+                        // Последний сегмент — устанавливаем значение нужного типа
+                        array[index] = CreateTypeNode(type);
+                    }
+                    else
+                    {
+                        // Промежуточный сегмент — гарантируем, что элемент существует как объект
+                        if (array[index] is null)
+                            array[index] = new JsonObject();
+                        current = array[index];
+                    }
+                }
+                else
+                {
+                    // Обычный сегмент: "ingredients"
+                    if (current is JsonObject obj)
+                    {
+                        if (isLast)
+                        {
+                            // Последний сегмент — создаём свойство с нужным типом
+                            obj[segment] = CreateTypeNode(type);
+                        }
+                        else
+                        {
+                            // Промежуточный сегмент — гарантируем, что свойство существует как объект
+                            if (obj[segment] is null)
+                                obj[segment] = new JsonObject();
+                            current = obj[segment];
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Ожидается объект в {segment}, но получен {current?.GetType().Name}");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Вспомогательный метод: создать узел нужного типа
+        /// </summary>
+        private JsonNode CreateTypeNode(JsonType type)
+        {
+            return type switch
+            {
+                JsonType.Object => new JsonObject(),
+                JsonType.Array => new JsonArray(),
+                JsonType.String => "",
+                JsonType.Int => 0,
+                JsonType.Float => 0.0f,
+                JsonType.Bool => false,
+                _ => throw new ArgumentException($"Неизвестный тип: {type}")
+            };
+        }
+
+
+        /// <summary>
         /// 2. Назначить значение свойству. Создаёт элемент.
+        /// Теперь корректно работает с путями типа "pattern[0]", "sequence[1].ingredients[0].item"
         /// </summary>
         public void SetValue(string path, object value)
         {
+            // Если путь содержит индекс массива — используем специальный метод
+            if (path.Contains("["))
+            {
+                SetValueWithArrayIndex(path, value);
+                return;
+            }
+
             var (parent, name) = SplitPath(path);
             var parentNode = GetOrCreateNode(parent);
 
-            // Если родитель — массив, name это индекс
             if (parentNode is JsonArray array)
             {
                 var index = ParseIndex(name);
                 EnsureArraySize(array, index + 1);
                 array[index] = CreateValueNode(value);
             }
-            // Если родитель — объект, name это имя свойства
             else if (parentNode is JsonObject obj)
             {
                 obj[name] = CreateValueNode(value);
+            }
+        }
+
+        /// <summary>
+        /// Новый метод: установка значения с индексом массива
+        /// "pattern[0]" → устанавливает элемент массива pattern[0]
+        /// "sequence[1].ingredients[0].item" → устанавливает глубоко вложенное значение
+        /// </summary>
+        private void SetValueWithArrayIndex(string path, object value)
+        {
+            var segments = ParsePathSegments(path);
+            JsonNode? current = _root;
+
+            for (int i = 0; i < segments.Count; i++)
+            {
+                var segment = segments[i];
+
+                if (TryParseIndex(segment, out var name, out var index))
+                {
+                    // Сегмент с индексом: "pattern[0]"
+                    var array = GetOrCreateArray(current, name);
+                    EnsureArraySize(array, index + 1);
+
+                    if (i == segments.Count - 1)
+                    {
+                        // Последний сегмент — устанавливаем значение
+                        array[index] = CreateValueNode(value);
+                    }
+                    else
+                    {
+                        // Промежуточный сегмент — идём глубже
+                        if (array[index] is null)
+                            array[index] = new JsonObject();
+                        current = array[index];
+                    }
+                }
+                else
+                {
+                    // Обычный сегмент: "ingredient"
+                    if (current is JsonObject obj)
+                    {
+                        if (obj[segment] is null)
+                            obj[segment] = new JsonObject();
+                        current = obj[segment];
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"Ожидается объект в {segment}");
+                    }
+                }
             }
         }
 
@@ -104,31 +251,134 @@ namespace KubeAutomation.GenerationStrategies.Generators
         /// <summary>
         /// 7. Удалить элемент из JSON-документа
         /// </summary>
+        /// <summary>
+        /// 7. Удалить элемент из JSON-документа
+        /// </summary>
         public void Remove(string path)
         {
-            var (parent, name) = SplitPath(path);
-            var parentNode = GetOrCreateNode(parent);
+            if (string.IsNullOrEmpty(path))
+                return;
 
-            if (parentNode is JsonObject obj)
-                obj.Remove(name);
-            else if (parentNode is JsonArray arr)
-                arr.Remove(arr[int.Parse(name)]);
+            var segments = ParsePathSegments(path);
+            JsonNode? current = _root;
+
+            // Проходим по всем сегментам, кроме последнего
+            for (int i = 0; i < segments.Count - 1; i++)
+            {
+                var segment = segments[i];
+
+                if (TryParseIndex(segment, out var name, out var index))
+                {
+                    if (current is JsonObject obj && obj[name] is JsonArray array)
+                        current = (index < array.Count) ? array[index] : null;
+                    else if (current is JsonArray arr)
+                        current = (index < arr.Count) ? arr[index] : null;
+                    else
+                        return;
+                }
+                else
+                {
+                    if (current is JsonObject obj)
+                        current = obj[segment];
+                    else
+                        return;
+                }
+
+                if (current == null) return;
+            }
+
+            // Последний сегмент — удаляем
+            var lastSegment = segments[^1];
+
+            if (TryParseIndex(lastSegment, out var lastName, out var lastIndex))
+            {
+                if (current is JsonObject obj && obj[lastName] is JsonArray array)
+                {
+                    if (lastIndex < array.Count)
+                        array.RemoveAt(lastIndex);
+                }
+                else if (current is JsonArray arr && lastIndex < arr.Count)
+                {
+                    arr.RemoveAt(lastIndex);
+                }
+            }
+            else
+            {
+                if (current is JsonObject obj)
+                    obj.Remove(lastSegment);
+            }
         }
 
         /// <summary>
         /// 8. Получить элемент из JSON-документа
+        /// Теперь корректно работает с путями типа "pattern[0]", "sequence[1].ingredients[0].item"
         /// </summary>
-        public object GetValue(string path)
+        public object? GetValue(string path)
         {
-            var (parent, name) = SplitPath(path);
-            var parentNode = GetOrCreateNode(parent);
+            // Пустой путь → возвращаем корень
+            if (string.IsNullOrEmpty(path))
+                return _root;
 
-            if (parentNode is JsonObject obj)
-                return obj[name]?.GetValue<object>();
-            else if (parentNode is JsonArray arr)
-                return arr[int.Parse(name)]?.GetValue<object>();
+            // Разбираем путь на сегменты: "a.b[0].c" → ["a", "b[0]", "c"]
+            var segments = ParsePathSegments(path);
+            JsonNode? current = _root;
 
-            return null;
+            foreach (var segment in segments)
+            {
+                if (current == null)
+                    return null;
+
+                // Проверяем: это обращение к массиву? "results[0]"
+                if (TryParseIndex(segment, out var name, out var index))
+                {
+                    // Случай 1: текущий узел — объект, внутри него массив
+                    if (current is JsonObject obj && obj[name] is JsonArray array)
+                    {
+                        if (index < array.Count)
+                            current = array[index];
+                        else
+                            return null; // Индекс за пределами массива
+                    }
+                    // Случай 2: текущий узел — сам массив (крайний случай)
+                    else if (current is JsonArray arr)
+                    {
+                        if (index < arr.Count)
+                            current = arr[index];
+                        else
+                            return null;
+                    }
+                    else
+                    {
+                        return null; // Не массив там, где ожидаем
+                    }
+                }
+                // Обычное обращение к свойству объекта: "ingredient"
+                else
+                {
+                    if (current is JsonObject obj)
+                    {
+                        current = obj[segment];
+                    }
+                    else
+                    {
+                        return null; // Не объект там, где ожидаем
+                    }
+                }
+            }
+
+            // Извлекаем значение из конечного узла
+            if (current == null)
+                return null;
+
+            try
+            {
+                return current.GetValue<object>();
+            }
+            catch
+            {
+                // Если это объект/массив — GetValue() упадёт, возвращаем сам узел
+                return current;
+            }
         }
 
         // ============================================================
@@ -398,6 +648,9 @@ namespace KubeAutomation.GenerationStrategies.Generators
             };
         }
 
-
+        public override void Validate()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

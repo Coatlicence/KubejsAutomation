@@ -1,7 +1,11 @@
+using Esprima;
+using Esprima.Ast;
 using KubeAutomation;
 using KubeAutomation.FileSaveStrategies;
 using KubeAutomation.GenerationStrategies.Generators;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeAutomation.GenerationStrategies.Templates;
+using KubeAutomation.Tests;
 using KubeScriptAutomation;
 using KubeScriptAutomation.Collectos;
 using LogExtractorLibrary;
@@ -13,10 +17,7 @@ using System.Linq;
 using System.Text.Json; // Добавлено для десериализации
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Esprima;
-using Esprima.Ast;
 using System.Xml.Serialization;
-using KubeAutomation.GenerationStrategies.Templates;
 
 class Program
 {
@@ -25,10 +26,6 @@ class Program
     [STAThread]
     static async Task Main()
     {
-        TestJSONTemplateSave();
-
-        TestJSONTemplateLoad();
-
         // Запускаем форму в отдельном потоке
         Thread formThread = new(() =>
         {
@@ -59,15 +56,12 @@ class Program
                 //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
             }
 
-            if (res == "t")
+            if (res == "t" || res == "т")
             {
-                Console.WriteLine("deleting last");
-
-                var s = new FileSaverToEnd();
-
-                var di = "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы\\test\\";
-
-                s.Save("test", di, "test.js");
+                TestRunner.RunAll();
+                Console.WriteLine("\n\n\n   Введите любой символ для продолжения...");
+                Console.ReadLine();
+                continue;
             }
 
             if (res == "пр" || res == "gr")
@@ -646,7 +640,7 @@ class Program
 
         foreach (var template in templates)
         {
-            Console.WriteLine($"📄 {template.Category}/{template.Name}");
+            Console.WriteLine($"   {template.Category}/{template.Name}");
             Console.WriteLine($"   {template.Description}");
             Console.WriteLine($"   Автор: {template.Author}");
             Console.WriteLine();

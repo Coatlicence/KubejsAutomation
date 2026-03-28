@@ -1,4 +1,5 @@
 ﻿using KubeAutomation.GenerationStrategies.Generators;
+using KubeAutomation.Tests;
 using Microsoft.VisualBasic.FileIO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -24,6 +25,15 @@ namespace KubeAutomation.GenerationStrategies.Templates
         public JsonType Type { get; set; }
         public FieldType FieldType { get; set; }
         public object? Value { get; set; }
+
+        public override string ToString()
+        {
+            var val = Value?.ToString() ?? "null";
+            // Если Value — JsonElement, выведем его как строку
+            if (Value is System.Text.Json.JsonElement je)
+                val = je.ToString();
+            return $"Path='{Path}' Type={Type} Field={FieldType} Value='{val}'";
+        }
     }
 
     /// <summary>
@@ -48,7 +58,7 @@ namespace KubeAutomation.GenerationStrategies.Templates
     public static class TemplateManager
     {
         // Базовая папка для шаблонов
-        private static readonly string TemplatesFolder = Path.Combine(
+        public static string TemplatesFolder = Path.Combine(
             AppDomain.CurrentDomain.BaseDirectory, "Templates");
 
         /// <summary>
@@ -190,6 +200,15 @@ namespace KubeAutomation.GenerationStrategies.Templates
                     return TemplateLoadResult.Fail("$structure.paths отсутствует");
 
                 paths = pathsNode.Deserialize<List<PathInfo>>() ?? new List<PathInfo>();
+
+                // test
+                TestLogger.Write($"[DEBUG] Loaded paths: {paths.Count}");
+                foreach (var p in paths)
+                {
+                    // Показываем тип Value для отладки
+                    var valType = p.Value?.GetType()?.Name ?? "null";
+                    TestLogger.Write($"  [PATH] Path='{p.Path}' Type={p.Type} Value='{p.Value}' (CLR: {valType})");
+                }
             }
             catch (Exception ex)
             {
@@ -213,6 +232,8 @@ namespace KubeAutomation.GenerationStrategies.Templates
                         // КОНВЕРТИРОВАТЬ JsonElement в правильный тип
                         var convertedValue = ConvertValue(pathInfo.Value, pathInfo.Type);
 
+                        TestLogger.Write($"  [SET] {pathInfo.Path} = '{convertedValue}' (type: {convertedValue?.GetType()?.Name})");
+
                         if (convertedValue != null)
                         {
                             config.SetValue(pathInfo.Path, convertedValue);
@@ -221,7 +242,7 @@ namespace KubeAutomation.GenerationStrategies.Templates
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Пропущен путь {pathInfo.Path}: {ex.Message}");
+                    TestLogger.Write($"  [ERROR] Пропущен путь {pathInfo.Path}: {ex.Message}");
                 }
             }
 
@@ -449,6 +470,95 @@ namespace KubeAutomation.GenerationStrategies.Templates
                     ["paths"] = JsonSerializer.SerializeToNode(paths)
                 }
             };
+        }
+
+        /// <summary>
+        /// Сохранить РЕЦЕПТ (все данные как есть, без классификации)
+        /// Для режима редактирования/ребаланса на проде
+        /// </summary>
+        public static bool SaveRecipe(
+            string recipeName,
+            CustomRecipeConfig config,
+            string category = "custom",
+            string? description = null,
+            string? author = null,
+            bool overwrite = false)
+        {
+            // 1. Валидация имени (как в SaveTemplate)
+            if (string.IsNullOrWhiteSpace(recipeName))
+                return false;
+
+            recipeName = recipeName.Replace(".json", "");
+            if (recipeName.Any(c => !char.IsLetterOrDigit(c) && c != '_'))
+                return false;
+
+            // 2. Путь к файлу
+            var categoryFolder = Path.Combine(TemplatesFolder, category);
+            var filePath = Path.Combine(categoryFolder, $"{recipeName}.json");
+
+            Directory.CreateDirectory(categoryFolder);
+            if (File.Exists(filePath) && !overwrite)
+                return false;
+
+            // 3. КЛЮЧЕВОЕ ОТЛИЧИЕ: извлекаем ВСЕ пути со значениями, без классификации
+            var paths = ExtractStructureFull(config);
+
+            TestLogger.Write($"[DEBUG] ExtractStructureFull: {paths.Count} путей");
+            foreach (var p in paths)
+            {
+                TestLogger.Write($"  [PATH] {p}");
+            }
+
+            // 4. Метаданные
+            var metadata = new TemplateMetadata
+            {
+                Name = recipeName,
+                Id = recipeName,
+                Category = category,
+                Description = description,
+                Author = author,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+
+            // 5. Собираем итоговый JSON
+            var recipeJson = CreateTemplateJson(metadata, paths);
+
+            // 6. Сохраняем
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            File.WriteAllText(filePath, recipeJson.ToJsonString(options));
+            return true;
+        }
+
+        /// <summary>
+        /// Извлечь структуру с ВСЕМИ значениями (без классификации)
+        /// Все поля помечаются как Fixed и сохраняются с текущими значениями
+        /// </summary>
+        private static List<PathInfo> ExtractStructureFull(CustomRecipeConfig config)
+        {
+            var paths = new List<PathInfo>();
+            var pathList = config.GetPathList();
+
+            foreach (var path in pathList)
+            {
+                var pathType = config.GetPathType(path);
+                var value = config.GetValue(path);
+
+                paths.Add(new PathInfo
+                {
+                    Path = path,
+                    Type = pathType,
+                    FieldType = FieldType.Fixed,  // Все поля как фиксированные
+                    Value = value                  // Значение сохраняется как есть
+                });
+            }
+
+            return paths;
         }
     }
 }

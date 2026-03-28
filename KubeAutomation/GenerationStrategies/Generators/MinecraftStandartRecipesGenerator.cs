@@ -6,13 +6,13 @@ namespace KubeAutomation.GenerationStrategies.Generators
 {
     public static class MinecraftStandartRecipesGenerator
     {
-        public static readonly IReadOnlyList<string> Blocks = new List<string>
-        {
+        public static readonly IReadOnlyList<string> Blocks =
+        [
             "smelting",
             "blasting",
             "smoking",
             "stonecutting"
-        };
+        ];
 
         public static string Generate(string block, ItemComponent outputItem, ItemComponent inputItem, float? experience = null)
         {
