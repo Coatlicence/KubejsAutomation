@@ -44,6 +44,10 @@ namespace KubeAutomation.GenerationStrategies.Generators
             if (inputItem is null)
                 errors.Add("inputItem не может быть null");
 
+            // Важно для работы
+            if (errors.Count > 0) 
+                return errors;
+
             if (!Blocks.Contains(block))
                 errors.Add($"MinecraftStandartRecipesGenerator.Blocks не содержит {block}");
 

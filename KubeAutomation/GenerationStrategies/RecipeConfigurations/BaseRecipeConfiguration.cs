@@ -52,10 +52,21 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         public int Amount { get; set; }
     }
 
-    public class ItemComponent(int amount, string itemId)
+    public class ItemComponent
     {
-        public int Amount { get; set; } = amount;
-        public string ItemId { get; set; } = itemId;
+        public ItemComponent(int amount, string itemId)
+        {
+            Amount = amount;
+            ItemId = itemId;
+        }
+
+        public ItemComponent()
+        {
+
+        }
+
+        public int Amount { get; set; }
+        public string ItemId { get; set; }
 
         public string ToJsString()
         {

@@ -9,7 +9,7 @@ namespace KubeAutomation.Tests.Cases
 {
     public class RoundtripTests : TestBase
     {
-        public List<TestResult> RunAll()
+        public override List<TestResult> RunAll()
         {
             var results = new List<TestResult>
             {
@@ -204,7 +204,6 @@ namespace KubeAutomation.Tests.Cases
             }
         }
 
-
         private TestResult TestMetadataPreservation()
         {
             TestLogger.Write("[TEST] Start: Метаданные: Сохранение");
@@ -314,7 +313,6 @@ namespace KubeAutomation.Tests.Cases
             }
         }
 
-
         private TestResult TestTemplateModeRequiredFields()
         {
             TestLogger.Write("[TEST] Start: Режим 1 (Шаблоны): Проверка очистки Required полей");
@@ -351,7 +349,7 @@ namespace KubeAutomation.Tests.Cases
                 string originalJson = original.ToJson();
                 TestLogger.Write($"[DATA] Original JSON (полные данные):\n{originalJson}");
 
-                // 2. Сохраняем как ШАБЛОН (не рецепт!)
+                // 2. Сохраняем как ШАБЛОН (не рецепт)
                 TestLogger.Write("[STEP 2] Сохранение как ШАБЛОН (SaveTemplate)...");
 
                 var saved = TemplateManager.SaveTemplate("test_template_mode", original, "create", "Тест шаблона", "Tester");

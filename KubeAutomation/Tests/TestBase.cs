@@ -21,6 +21,8 @@ namespace KubeAutomation.Tests
             TemplateManager.TemplatesFolder = TempFolder;
         }
 
+        public abstract List<TestResult> RunAll();
+
         public void Dispose()
         {
             // Восстанавливаем оригинальный путь
