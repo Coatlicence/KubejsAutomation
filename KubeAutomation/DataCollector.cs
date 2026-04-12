@@ -67,13 +67,13 @@ namespace KubeScriptAutomation.Collectos
             while (items.Count < maxItems)
             {
                 Console.WriteLine($"Введите {type} предмет (осталось {maxItems - items.Count}):");
-                string input = Console.ReadLine()?.Trim();
+                string input = Console.ReadLine()?.Trim()!;
                 if (string.IsNullOrEmpty(input) || input.ToLower() == "готово" || input.ToLower() == "done")
                     break;
 
                 if (TryParseItemInput(input, out int amount, out string itemId))
                 {
-                    items.Add(new ItemComponent(amount, itemId));
+                    items.Add(new ItemComponent(itemId, amount));
                 }
                 else
                 {
@@ -109,7 +109,7 @@ namespace KubeScriptAutomation.Collectos
                 Console.WriteLine($"Введите {type} жидкость или 'готово' для завершения");
                 Console.WriteLine($"Осталось {maxLiquids - fluids.Count}");
 
-                string id = Console.ReadLine()?.Trim();
+                string id = Console.ReadLine()?.Trim()!;
                 if (string.IsNullOrEmpty(id) || id.ToLower() == "готово" || id.ToLower() == "done" || id.ToLower() == "d")
                     break;
 
@@ -133,7 +133,7 @@ namespace KubeScriptAutomation.Collectos
 
         public static bool GetPositiveAnswer()
         {
-            string res = Console.ReadLine()?.Trim().ToLower();
+            string res = Console.ReadLine()?.Trim().ToLower()!;
 
             if (res == "yes" || res == "y" || res == "да" || res == "д")
             {

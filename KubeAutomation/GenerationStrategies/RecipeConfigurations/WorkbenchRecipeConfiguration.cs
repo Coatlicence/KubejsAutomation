@@ -27,7 +27,58 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
             ArgumentNullException.ThrowIfNull(pattern);
         }
 
+        /// <summary>
+        /// Генерирует JavaScript-код для shaped-рецепта верстака.
+        /// Формат: event.shaped(output, pattern, keyMap)
+        /// </summary>
+        public override string GenerateJsCode()
+        {
+            // Валидация перед генерацией
+            Validate();
 
+            // Извлечение данных (гарантированно не null после валидации)
+            var output = itemOutput;
+            var pattern = this.pattern;
+
+            // Формирование выходного предмета: всегда Item.of(id, count)
+            var outputString = $"Item.of(\"{EscapeJs(output.ItemId)}\", {output.Amount})";
+
+            // Базовый отступ для вставки в тело функции
+            const string indent = "    ";
+
+            // Получаем и форматируем паттерн (сетка)
+            var patternJs = pattern?.ToPatternJs();
+            var indentedPatternJs = patternJs!.Replace("\n", "\n" + indent + "    ");
+
+            // Получаем и форматируем keyMap (словарь соответствий)
+            var keysJs = pattern?.ToKeyMapJs();
+            var indentedKeysJs = keysJs!.Replace("\n", "\n" + indent + "    ");
+
+            // Собираем финальный JS-код
+            var lines = new List<string>
+            {
+                $"{indent}event.shaped(",
+                $"{indent}    {outputString},",
+                $"{indent}    {indentedPatternJs},",
+                $"{indent}    {indentedKeysJs}",
+                $"{indent})"
+            };
+
+            return string.Join(Environment.NewLine, lines);
+        }
+
+        /// <summary>
+        /// Экранирует специальные символы для JS-строк
+        /// </summary>
+        private static string EscapeJs(string value)
+        {
+            return value
+                .Replace("\\", "\\\\")   // \ → \\
+                .Replace("\"", "\\\"")   // " → \"
+                .Replace("\n", "\\n")    // перевод строки → \n
+                .Replace("\r", "\\r")    // возврат каретки → \r
+                .Replace("\t", "\\t");   // табуляция → \t
+        }
     }
 
     /// <summary>
@@ -172,6 +223,9 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         }
 
         public string[] ToArray() => [Row1, Row2, Row3];
+    
+        
     }
+
 
 }

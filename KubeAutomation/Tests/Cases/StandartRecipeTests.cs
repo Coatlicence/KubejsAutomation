@@ -10,7 +10,7 @@ namespace KubeAutomation.Tests.Cases
     {
         private static ItemComponent MakeItem(string itemId, int amount = 1)
         {
-            return new ItemComponent(amount, itemId);
+            return new ItemComponent(itemId, amount);
         }
 
         public override List<TestResult> RunAll()

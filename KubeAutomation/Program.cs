@@ -38,7 +38,7 @@ class Program
         formThread.Start();
 
 
-        Console.WriteLine("Система автоматизации KubeJS скриптов для GregTech");
+        Console.WriteLine("Система автоматизации KubeJS скриптов");
         Console.WriteLine("===============================================");
 
         var inputCollector = new GregTechRecipeCodeGenerator.RecipeInputCollector();
@@ -48,7 +48,7 @@ class Program
         {
             Console.WriteLine("\nХотите создать новый рецепт? (да/нет/получить)");
 
-            string res = Console.ReadLine()?.Trim().ToLower();
+            string res = Console.ReadLine()?.Trim().ToLower()!;
 
             if (res == "получить" || res == "п" || res == "g" || res == "get")
             {
@@ -56,7 +56,7 @@ class Program
                 //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
             }
 
-            if (res == "t" || res == "т")
+            if (res == "t" || res == "т" || res == "test" || res == "тест")
             {
                 TestRunner.RunAll();
                 Console.WriteLine("\n\n\n   Введите любой символ для продолжения...");

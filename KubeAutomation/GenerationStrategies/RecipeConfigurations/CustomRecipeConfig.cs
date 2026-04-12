@@ -648,9 +648,52 @@ namespace KubeAutomation.GenerationStrategies.Generators
             };
         }
 
+        /// <summary>
+        /// Валидация для CustomRecipeConfig.
+        /// Проверяет только базовые требования.
+        /// </summary>
         public override void Validate()
         {
-            throw new NotImplementedException();
+            var errors = new List<string>();
+
+            // Проверка: тип рецепта должен быть указан (поле "type" в корне)
+            var typeValue = GetValue("type") as string;
+            if (string.IsNullOrEmpty(typeValue))
+            {
+                errors.Add("Поле 'type' обязательно для custom-рецепта");
+            }
+
+            // Проверка: корневой объект не должен быть пустым
+            if (_root.Count == 0)
+            {
+                errors.Add("Рецепт не содержит свойств");
+            }
+
+            // Если есть ошибки — выбрасываем исключение
+            if (errors.Count > 0)
+            {
+                throw new RecipeValidationException("CustomRecipeConfig validation failed")
+                {
+                    Errors = errors
+                };
+            }
+        }
+
+        /// <summary>
+        /// Генерирует JavaScript-код для вызова event.custom()
+        /// </summary>
+        /// <returns>Строка вида: event.custom({ ... })</returns>
+        public override string GenerateJsCode()
+        {
+            // Валидация перед генерацией (опционально, но рекомендуется)
+            Validate();
+
+            // Получаем отформатированный JSON
+            string json = ToJson();
+
+            // Оборачиваем в вызов event.custom()
+            // Отступ "    " добавляется, если фрагмент вставляется в тело функции
+            return $"    event.custom({json})";
         }
     }
 }

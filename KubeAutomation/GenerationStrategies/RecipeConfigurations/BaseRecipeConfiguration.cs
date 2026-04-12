@@ -1,79 +1,71 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
 {
-    public abstract class BaseRecipeConfiguration 
+    /// <summary>
+    /// Базовый абстрактный класс для всех конфигураций рецептов.
+    /// Определяет минимальный контракт, который должен реализовать каждый конкретный рецепт.
+    /// </summary>
+    /// <remarks>
+    /// Наследуйте свои конфиги от этого класса, чтобы обеспечить:
+    /// - Единый способ валидации данных
+    /// - Полиморфную генерацию JS-кода
+    /// - Уникальную идентификацию типа рецепта
+    /// </remarks>
+    public abstract class BaseRecipeConfiguration
     {
+        /// <summary>
+        /// Уникальный идентификатор рецепта (опционально).
+        /// Используется для поиска, замены или удаления рецепта в файле.
+        /// Пример: "minecraft:iron_ingot_from_smelting"
+        /// </summary>
         public string? RecipeId { get; set; }
 
+        /// <summary>
+        /// Строковый идентификатор типа рецепта.
+        /// Используется для классификации при парсинге файлов и выборе стратегии генерации.
+        /// </summary>
+        /// <example>
+        /// "minecraft:crafting_shaped" для ShapedRecipeConfig
+        /// "create:sequenced_assembly" для CustomRecipeConfig
+        /// "gtceu:alloy_smelter" для GregTechRecipeConfig
+        /// </example>
+        public abstract string RecipeTypeId { get; }
+
+        /// <summary>
+        /// Валидирует внутренние данные рецепта.
+        /// Должен выбрасывать исключение или возвращать ошибки при некорректных данных.
+        /// </summary>
+        /// <exception cref="RecipeValidationException">Если данные не прошли валидацию</exception>
         public abstract void Validate();
 
         /// <summary>
-        /// Позволяет легко различать типы конфигураций 
-        /// при извлечении рецепта из файла.
-        /// 
-        /// Например GregTechRecipeConfiguration = "gtceu"
+        /// Генерирует JavaScript-код для вызова KubeJS.
+        /// Возвращает готовую строку, которую можно записать в файл.
         /// </summary>
-        public abstract string RecipeTypeId { get; }
+        /// <returns>JS-код, например: "event.shaped('item', ['A'], { A: 'tag' })"</returns>
+        /// <remarks>
+        /// Реализация должна учитывать:
+        /// - Правильный синтаксис KubeJS
+        /// - Экранирование строк
+        /// - Отступы (если метод возвращает фрагмент для вставки)
+        /// </remarks>
+        public abstract string GenerateJsCode();
     }
 
-    // Базовые классы для расширяемости
-    public interface IRecipeType
+    /// <summary>
+    /// Исключение, выбрасываемое при ошибке валидации рецепта.
+    /// Позволяет отличить ошибки данных от программных багов.
+    /// </summary>
+    public class RecipeValidationException : System.Exception
     {
-        string EventPrefix { get; }
-        string DirectoryName { get; }
+        public RecipeValidationException(string message) : base(message) { }
+
+        public RecipeValidationException(string message, System.Exception inner)
+            : base(message, inner) { }
+
+        public IEnumerable<string> Errors { get; set; } = [];
     }
 
-    public class ServerRecipeType : IRecipeType
-    {
-        public string EventPrefix => "ServerEvents.recipes";
-        public string DirectoryName => "server_scripts";
-    }
 
-    // Модель данных для рецепта
-    public class FluidComponent
-    {
-        public FluidComponent()
-        {
-            // empty
-        }
-
-        public FluidComponent(string fluidId, int amount)
-        {
-            FluidId = fluidId;
-            Amount = amount;
-        }
-
-        public string FluidId { get; set; }
-        public int Amount { get; set; }
-    }
-
-    public class ItemComponent
-    {
-        public ItemComponent(int amount, string itemId)
-        {
-            Amount = amount;
-            ItemId = itemId;
-        }
-
-        public ItemComponent()
-        {
-
-        }
-
-        public int Amount { get; set; }
-        public string ItemId { get; set; }
-
-        public string ToJsString()
-        {
-            var escapedId = ItemId.Replace("\\", "\\\\").Replace("'", "\\'");
-            return Amount > 1 ? $"{Amount}x {escapedId}" : escapedId;
-        }
-
-        public override string ToString() => ToJsString();  // Для обратной совместимости
-    }
 }

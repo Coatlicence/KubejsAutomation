@@ -77,7 +77,7 @@ namespace KubeAutomation.Tests.Cases
                 string originalJson = original.ToJson();
                 TestLogger.Write($"[DATA] Original JSON:\n{originalJson}");
 
-                // 2. 🔧 Сохраняем как РЕЦЕПТ (не шаблон!)
+                // 2. Сохраняем как РЕЦЕПТ (не шаблон!)
                 var saved = TemplateManager.SaveRecipe("test_simple_recipe", original, "test");
                 TestLogger.Write($"[SAVE] SaveRecipe result: {saved}");
                 if (!saved) throw new Exception("SaveRecipe failed");
@@ -240,14 +240,14 @@ namespace KubeAutomation.Tests.Cases
                 TestLogger.Write($"[SAVE] Result: {saved}");
                 if (!saved) throw new Exception("SaveTemplate вернул false");
 
-                // 🔧 Проверка: файл действительно создан
+                // Проверка: файл действительно создан
                 var expectedPath = Path.Combine(TemplateManager.TemplatesFolder, testCategory, $"{testName}.json");
                 var fileExists = File.Exists(expectedPath);
                 TestLogger.Write($"[CHECK] Файл создан: {fileExists}, Путь: {expectedPath}");
 
                 if (!fileExists) throw new Exception($"Файл шаблона не создан: {expectedPath}");
 
-                // 🔧 Читаем сырой JSON для отладки
+                // Читаем сырой JSON для отладки
                 var rawJson = File.ReadAllText(expectedPath);
                 TestLogger.Write($"[DATA] Raw saved JSON (first 500 chars):\n{rawJson.Substring(0, Math.Min(500, rawJson.Length))}");
 

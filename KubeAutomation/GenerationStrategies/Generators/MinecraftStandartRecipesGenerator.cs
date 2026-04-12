@@ -38,10 +38,10 @@ namespace KubeAutomation.GenerationStrategies.Generators
             if (string.IsNullOrWhiteSpace(block))
                 errors.Add("block не может быть пустым");
 
-            if (outputItem is null)
+            if (outputItem is null || string.IsNullOrEmpty(outputItem.ItemId))
                 errors.Add("outputItem не может быть null");
 
-            if (inputItem is null)
+            if (inputItem is null || string.IsNullOrEmpty(inputItem.ItemId))
                 errors.Add("inputItem не может быть null");
 
             // Важно для работы

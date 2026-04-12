@@ -23,7 +23,7 @@ namespace KubeAutomation.Tests
         public static string Finalize(int passed, int failed)
         {
             File.AppendAllText(LogPath, $"=== ИТОГ: {passed} пройдено, {failed} провалено ===\n");
-            return $"YES {passed} | NO {failed} | Лог: {Path.GetFileName(LogPath)}";
+            return $"YES {passed} | NO {failed} | Лог: {Path.GetFileName(LogPath)} | \nПолный путь: {Path.GetFullPath(LogPath)}";
         }
     }
 }
