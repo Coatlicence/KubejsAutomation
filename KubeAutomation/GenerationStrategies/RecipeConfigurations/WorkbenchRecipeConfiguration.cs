@@ -67,18 +67,6 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
             return string.Join(Environment.NewLine, lines);
         }
 
-        /// <summary>
-        /// Экранирует специальные символы для JS-строк
-        /// </summary>
-        private static string EscapeJs(string value)
-        {
-            return value
-                .Replace("\\", "\\\\")   // \ → \\
-                .Replace("\"", "\\\"")   // " → \"
-                .Replace("\n", "\\n")    // перевод строки → \n
-                .Replace("\r", "\\r")    // возврат каретки → \r
-                .Replace("\t", "\\t");   // табуляция → \t
-        }
     }
 
     /// <summary>

@@ -27,10 +27,6 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         /// Валидирует конфигурацию перед генерацией кода.
         /// </summary>
         /// <exception cref="RecipeValidationException">Если конфигурация невалидна</exception>
-        /// <summary>
-        /// Валидирует конфигурацию перед генерацией кода.
-        /// </summary>
-        /// <exception cref="RecipeValidationException">Если конфигурация невалидна</exception>
         public override void Validate()
         {
             var errors = new List<string>();

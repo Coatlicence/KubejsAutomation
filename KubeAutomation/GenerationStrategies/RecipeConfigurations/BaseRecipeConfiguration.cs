@@ -51,6 +51,24 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         /// - Отступы (если метод возвращает фрагмент для вставки)
         /// </remarks>
         public abstract string GenerateJsCode();
+
+        /// <summary>
+        /// Экранирует строку для использования в JavaScript-коде.
+        /// </summary>
+        /// <param name="value">Строка для экранирования</param>
+        /// <returns>Экранированная строка</returns>
+        protected static string EscapeJs(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return "";
+
+            return value
+                .Replace("\\", "\\\\")   // \ → \\
+                .Replace("'", "\\'")     // ' → \'
+                .Replace("\"", "\\\"")   // " → \"
+                .Replace("\n", "\\n")    // перенос строки
+                .Replace("\r", "\\r");   // возврат каретки
+        }
     }
 
     /// <summary>

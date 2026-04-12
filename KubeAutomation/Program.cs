@@ -38,6 +38,7 @@ class Program
         formThread.Start();
 
 
+
         Console.WriteLine("Система автоматизации KubeJS скриптов");
         Console.WriteLine("===============================================");
 
