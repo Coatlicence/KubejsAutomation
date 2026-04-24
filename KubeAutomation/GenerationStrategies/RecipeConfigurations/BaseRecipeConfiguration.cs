@@ -23,7 +23,7 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
 
         /// <summary>
         /// Строковый идентификатор типа рецепта.
-        /// Используется для классификации при парсинге файлов и выборе стратегии генерации.
+        /// Используется для классификации при парсинге файлов и выбора стратегии генерации.
         /// </summary>
         /// <example>
         /// "minecraft:crafting_shaped" для ShapedRecipeConfig
@@ -31,6 +31,23 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         /// "gtceu:alloy_smelter" для GregTechRecipeConfig
         /// </example>
         public abstract string RecipeTypeId { get; }
+
+        /// <summary>
+        /// Позиция начала элемента в исходном файле (символы).
+        /// -1 если позиция не известна.
+        /// </summary>
+        public int SourceStart { get; set; } = -1;
+
+        /// <summary>
+        /// Позиция конца элемента в исходном файле (символы).
+        /// -1 если позиция не известна.
+        /// </summary>
+        public int SourceEnd { get; set; } = -1;
+
+        /// <summary>
+        /// Был ли элемент извлечён с позицией.
+        /// </summary>
+        public bool HasSourcePosition => SourceStart >= 0;
 
         /// <summary>
         /// Валидирует внутренние данные рецепта.
@@ -63,11 +80,21 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
                 return "";
 
             return value
-                .Replace("\\", "\\\\")   // \ → \\
-                .Replace("'", "\\'")     // ' → \'
-                .Replace("\"", "\\\"")   // " → \"
-                .Replace("\n", "\\n")    // перенос строки
-                .Replace("\r", "\\r");   // возврат каретки
+                .Replace("\\", "\\\\")
+                .Replace("'", "\\'")
+                .Replace("\"", "\\\"")
+                .Replace("\n", "\\n")
+                .Replace("\r", "\\r");
+        }
+
+        /// <summary>
+        /// Экранирует строку и оборачивает в одинарные кавычки для JS.
+        /// </summary>
+        /// <param name="value">Строка для экранирования</param>
+        /// <returns>Строка в кавычках: 'value'</returns>
+        protected static string ToQuotedJs(string value)
+        {
+            return $"'{EscapeJs(value)}'";
         }
     }
 
@@ -82,8 +109,6 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
         public RecipeValidationException(string message, System.Exception inner)
             : base(message, inner) { }
 
-        public IEnumerable<string> Errors { get; set; } = [];
+        public IEnumerable<string> Errors { get; set; } = new List<string>();
     }
-
-
 }

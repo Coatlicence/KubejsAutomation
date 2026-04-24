@@ -695,5 +695,37 @@ namespace KubeAutomation.GenerationStrategies.Generators
             // Отступ "    " добавляется, если фрагмент вставляется в тело функции
             return $"    event.custom({json})";
         }
+
+        /// <summary>
+        /// Создаёт конфигурацию из JsonObject (для парсинга event.custom)
+        /// </summary>
+        /// <param name="json">JsonObject с полями рецепта</param>
+        /// <returns>Заполненный CustomRecipeConfig</returns>
+        public static CustomRecipeConfig FromJsonObject(JsonObject json)
+        {
+            var config = new CustomRecipeConfig();
+
+            // Копируем все поля из входного JSON во внутренний _root
+            // Так как метод внутри класса, мы имеем доступ к приватному полю _root
+            foreach (var property in json)
+            {
+                var key = property.Key;
+                var value = property.Value;
+
+                if (value != null)
+                {
+                    config._root[key] = value.DeepClone();
+                }
+            }
+
+            // Если есть "id" в корне — сохраняем в RecipeId базового класса
+            if (json.TryGetPropertyValue("id", out var idNode) && idNode is JsonValue idVal)
+            {
+                config.RecipeId = idVal.ToString();
+            }
+
+            return config;
+        }
+
     }
 }

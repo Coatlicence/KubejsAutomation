@@ -3,6 +3,7 @@ using Esprima.Ast;
 using KubeAutomation;
 using KubeAutomation.FileSaveStrategies;
 using KubeAutomation.GenerationStrategies.Generators;
+using KubeAutomation.GenerationStrategies.Parsing;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 using KubeAutomation.GenerationStrategies.Templates;
 using KubeAutomation.Tests;
@@ -14,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes; // Добавлено для NamedPipeClientStream
 using System.Linq;
+using System.Net.Http.Json;
 using System.Text.Json; // Добавлено для десериализации
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -37,7 +39,7 @@ class Program
         formThread.IsBackground = true;
         formThread.Start();
 
-
+        TestJS();
 
         Console.WriteLine("Система автоматизации KubeJS скриптов");
         Console.WriteLine("===============================================");
@@ -102,7 +104,7 @@ class Program
                     }
                 }
                 
-                fileSaver.Save(script, config.RecipeId, dir);
+                //fileSaver.Save(script, config.RecipeId, dir);
 
                 Console.WriteLine("\nРецепт успешно создан!");
             }
@@ -115,6 +117,105 @@ class Program
         Console.WriteLine(EmptyFunctionGenerator.GenerateTitle(s2));
 
         Console.WriteLine("Программа завершена.");
+    }
+
+    public static void TestJS()
+    {
+        Console.WriteLine("=== Тест парсера JS ===\n");
+
+        string testFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "test_recipes.js");
+
+        if (!File.Exists(testFilePath))
+        {
+            testFilePath = "test_recipes.js";
+        }
+
+        Console.WriteLine($"Путь к файлу: {Path.GetFullPath(testFilePath)}");
+        Console.WriteLine($"Файл существует: {File.Exists(testFilePath)}\n");
+
+        if (!File.Exists(testFilePath))
+        {
+            Console.WriteLine("[ERROR] Файл не найден! Создайте test_recipes.js в корне проекта.");
+            Console.ReadKey();
+            return;
+        }
+
+
+        try
+        {
+            var parser = new JsRecipeParser();
+
+            Console.WriteLine("Чтение файла...");
+            var configs = parser.ParseFile(testFilePath);
+
+            // Вывод с порядком и позициями
+            Console.WriteLine($"\n=== Элементы в порядке файла (всего: {configs.Count}) ===");
+
+            int removalCount = 0;
+            int customCount = 0;
+            int rawCount = 0;
+            int otherCount = 0;
+
+            for (int i = 0; i < configs.Count; i++)
+            {
+                var config = configs[i];
+                Console.WriteLine($"\n[{i + 1}]");
+
+                if (config is RecipeRemovalConfig removal)
+                {
+                    removalCount++;
+                    Console.WriteLine($"    [Удаление] фильтров: {removal.Filters.Count}");
+                    foreach (var f in removal.Filters)
+                    {
+                        Console.WriteLine($"      • mod:{f.Mod ?? "-"} out:{f.Output ?? "-"} type:{f.Type ?? "-"}");
+                    }
+                }
+                else if (config is CustomRecipeConfig custom)
+                {
+                    customCount++;
+                    var type = custom.GetValue("type") as string ?? "-";
+                    var id = custom.RecipeId ?? "-";
+                    Console.WriteLine($"    [custom] type:{type} id:{id}");
+                }
+                else if (config is RawCodeBlock raw)
+                {
+                    rawCount++;
+                    // ❗ RawCodeBlock не имеет свойства Content — используйте RawNode?.ToString()
+                    var code = raw.RawNode?.ToString() ?? "[empty]";
+                    Console.WriteLine($"    [Сырой код] {raw.Reason}: {code.Substring(0, Math.Min(40, code.Length))}...");
+                }
+            }
+
+            Console.WriteLine("\n--------------------------------------------------");
+            Console.WriteLine($"[СТАТИСТИКА]:");
+            Console.WriteLine($"   Удаление: {removalCount}");
+            Console.WriteLine($"   Custom: {customCount}");
+            Console.WriteLine($"   Сырой код: {rawCount}");
+            Console.WriteLine($"   Другие: {otherCount}");
+            Console.WriteLine($"   Всего: {configs.Count}");
+            Console.WriteLine("\n--------------------------------------------------");
+
+
+            // Генерация обратно в JS
+            Console.WriteLine($"\n=== Генерация обратно в JS ===");
+            foreach (var config in configs)
+            {
+                Console.WriteLine(config.GenerateJsCode());
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"\n[ERROR] {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"   Внутренняя ошибка: {ex.InnerException.Message}");
+            }
+        }
+
+        Console.WriteLine("\n=== Тест завершён ===");
+        Console.WriteLine("Нажмите любую клавишу для выхода...");
+        Console.ReadKey();
+
     }
 
     // Асинхронная функция для запуска внешнего приложения и получения данных из именного канала
