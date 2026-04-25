@@ -18,6 +18,7 @@ namespace KubeAutomation.Tests
             results.AddRange(new RoundtripTests().RunAll());
             results.AddRange(new StandartRecipeTests().RunAll());
             results.AddRange(new RecipeRemovalTests().RunAll());
+            results.AddRange(new CreateRecipeTests().RunAll());
 
             // Подсчёт
             int passed = results.Count(r => r.Passed);

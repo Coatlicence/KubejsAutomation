@@ -5,6 +5,7 @@ using KubeAutomation.FileSaveStrategies;
 using KubeAutomation.GenerationStrategies.Generators;
 using KubeAutomation.GenerationStrategies.Parsing;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations.Create;
 using KubeAutomation.GenerationStrategies.Templates;
 using KubeAutomation.Tests;
 using KubeScriptAutomation;
@@ -38,6 +39,8 @@ class Program
         formThread.SetApartmentState(ApartmentState.STA);
         formThread.IsBackground = true;
         formThread.Start();
+
+        //GenCreateRecipes();
 
         TestJS();
 
@@ -176,6 +179,18 @@ class Program
                     var type = custom.GetValue("type") as string ?? "-";
                     var id = custom.RecipeId ?? "-";
                     Console.WriteLine($"    [custom] type:{type} id:{id}");
+                }
+                else if (config is CreateFillingConfig filling)
+                {
+                    Console.WriteLine($"    [Create:Filling] out:{filling.Outputs[0].ItemId} in:{filling.Inputs.Count}");
+                }
+                else if (config is CreateCrushingConfig crushing)
+                {
+                    Console.WriteLine($"    [Create:Crushing] out:{crushing.Outputs.Count} in:{crushing.Inputs}");
+                }
+                else if (config is CreateDeployingConfig deploying)
+                {
+                    Console.WriteLine($"    [Create:Deploying] out:{deploying.Outputs[0].ItemId} in:{deploying.Inputs.Count}");
                 }
                 else if (config is RawCodeBlock raw)
                 {
@@ -512,5 +527,75 @@ class Program
         }
     }
 
+    private static void GenCreateRecipes()
+    {
+        Console.WriteLine("=== Примеры Create-рецептов ===\n");
 
+        // 1. Compacting
+        var compacting = new CreateCompactingConfig();
+        compacting.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal_block" });
+        compacting.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1 });
+        compacting.Modifiers.Heat = CreateHeatType.Heated;
+        Console.WriteLine("// Compacting (с нагревом)");
+        Console.WriteLine(compacting.GenerateJsCode());
+        Console.WriteLine();
+
+        // 2. Deploying
+        var deploying = new CreateDeployingConfig();
+        deploying.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal_block" });
+        deploying.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:sand" });
+        deploying.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1 });
+        deploying.Modifiers.KeepHeldItem = true;
+        Console.WriteLine("// Deploying (с сохранением предмета)");
+        Console.WriteLine(deploying.GenerateJsCode());
+        Console.WriteLine();
+
+        // 3. Emptying
+        var emptying = new CreateEmptyingConfig();
+        emptying.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:water_bucket" });
+        emptying.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:bucket", Count = 1 });
+        emptying.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:water", Count = 1000 });
+        Console.WriteLine("// Emptying (опустошение)");
+        Console.WriteLine(emptying.GenerateJsCode());
+        Console.WriteLine();
+
+        // 4. Filling
+        var filling = new CreateFillingConfig();
+        filling.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:bucket" });
+        filling.Inputs.Add(new CreateFluidIngredientComponent { FluidId = "minecraft:water", Amount = 1000 });
+        filling.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:water_bucket", Count = 1 });
+        Console.WriteLine("// Filling (наполнение)");
+        Console.WriteLine(filling.GenerateJsCode());
+        Console.WriteLine();
+
+        // 5. Crushing
+        var crushing = new CreateCrushingConfig();
+        crushing.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal_block" });
+        crushing.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1 });
+        crushing.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:emerald", Count = 1, Chance = 0.5f });
+        crushing.Modifiers.ProcessingTime = 500;
+        Console.WriteLine("// Crushing (дробление с шансами и временем)");
+        Console.WriteLine(crushing.GenerateJsCode());
+        Console.WriteLine();
+
+        // 6. Mixing
+        var mixing = new CreateMixingConfig();
+        mixing.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal" });
+        mixing.Inputs.Add(new CreateFluidIngredientComponent { FluidId = "minecraft:water", Amount = 1000 });
+        mixing.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1 });
+        mixing.Modifiers.Heat = CreateHeatType.Superheated;
+        Console.WriteLine("// Mixing (смешивание с флюидами и нагревом)");
+        Console.WriteLine(mixing.GenerateJsCode());
+        Console.WriteLine();
+
+        // 7. Sandpaper Polishing
+        var sandpaper = new CreateSandpaperPolishingConfig();
+        sandpaper.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal_block" });
+        sandpaper.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1, Chance = 0.7f });
+        Console.WriteLine("// Sandpaper Polishing (с шансом)");
+        Console.WriteLine(sandpaper.GenerateJsCode());
+        Console.WriteLine();
+
+        Console.WriteLine("=== Конец примеров ===");
+    }
 }

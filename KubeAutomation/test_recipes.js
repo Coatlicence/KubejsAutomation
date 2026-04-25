@@ -40,5 +40,16 @@ ServerEvents.recipes(event =>
         event.recipes.create.compacting('kubejs:biomass', Item.of(data.input, data.count)); 
     });
 
+    event.recipes.create.filling('minecraft:water_bucket', 
+        ['minecraft:bucket', Fluid.of('minecraft:water', 1000)])
+
+    event.recipes.create.crushing(
+        ['minecraft:diamond', CreateItem.of('minecraft:emerald', 0.5)], 
+        'minecraft:coal_block')
+        .processingTime(500)
+
+    event.recipes.create.deploying(
+        'minecraft:diamond', ['minecraft:coal_block', 'minecraft:sand'])
+        .keepHeldItem()
     // Конец файла
 });

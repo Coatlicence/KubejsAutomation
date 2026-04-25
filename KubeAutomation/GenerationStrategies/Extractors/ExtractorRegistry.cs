@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Esprima.Ast;
+using KubeAutomation.GenerationStrategies.Parsing.Create;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Esprima.Ast;
 
 namespace KubeAutomation.GenerationStrategies.Parsing
 {
@@ -37,6 +38,7 @@ namespace KubeAutomation.GenerationStrategies.Parsing
             // Специфичные экстракторы — первыми, общий (Raw) — последним
             registry.Register(new RemovalExtractor());    // event.remove
             registry.Register(new CustomExtractor());     // event.custom
+            registry.Register(new CreateExtractor());     // рецепты Create
             registry.Register(new RawCodeExtractor());    // любой другой event.что-то
 
             return registry;
