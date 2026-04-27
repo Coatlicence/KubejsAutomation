@@ -16,7 +16,8 @@ namespace KubeAutomation.GenerationStrategies.Parsing.Create
     {
         public bool CanHandle(Node? node)
         {
-            if (node is not CallExpression call)
+            var baseCall = GetBaseCallExpression(node);
+            if (baseCall is not CallExpression call)
                 return false;
 
             return IsCreateRecipeCall(call);
@@ -24,7 +25,8 @@ namespace KubeAutomation.GenerationStrategies.Parsing.Create
 
         public BaseRecipeConfiguration? Extract(Node? node)
         {
-            if (node is not CallExpression call)
+            var baseCall = GetBaseCallExpression(node);
+            if (baseCall is not CallExpression call)
                 return null;
 
             var methodName = ExtractMethodName(call);
@@ -48,15 +50,137 @@ namespace KubeAutomation.GenerationStrategies.Parsing.Create
             var inputsArg = call.Arguments[1];
             config.Inputs = ExtractIngredients(inputsArg);
 
-            // Извлекаем модификаторы (пока не реализовано)
-            // ExtractModifiers(call, config);
+            // Извлекаем модификаторы из цепочки вызовов
+            ExtractModifiers(node!, config); // node гарантированно не null, т.к. CanHandle прошёл
 
             return config;
         }
 
         /// <summary>
+        /// Извлекает базовый вызов из цепочки: mixing(...).heated() → mixing(...)
+        /// </summary>
+        /// <summary>
+        /// Извлекает базовый вызов из цепочки: mixing(...).heated() → mixing(...)
+        /// </summary>
+        private static CallExpression? GetBaseCallExpression(Node? node)
+        {
+            var current = node;
+
+            while (current is CallExpression call &&
+                   call.Callee is MemberExpression member)
+            {
+                // Если объект вызова — это тоже вызов, значит, цепочка продолжается
+                if (member.Object is CallExpression nextCall)
+                {
+                    current = nextCall;
+                    continue;
+                }
+
+                // Если объект — MemberExpression, проверяем, является ли это event.recipes.create.*
+                if (member.Object is MemberExpression baseMember)
+                {
+                    // Проверим, что это действительно event.recipes.create.method
+                    if (IsCreateRecipeCall(baseMember))
+                    {
+                        // Текущий call — это и есть базовый вызов (например, mixing(...))
+                        return call;
+                    }
+                }
+
+                break;
+            }
+
+            return current as CallExpression;
+        }
+        /// <summary>
+        /// Извлекает модификаторы из цепочки вызовов: .heated().processingTime(500)
+        /// </summary>
+        private static void ExtractModifiers(Node node, BaseCreateRecipeConfig config)
+        {
+            // node = CallExpression: processingTime(500)
+            var currentCallee = (node as CallExpression)?.Callee;
+
+            while (currentCallee is MemberExpression member)
+            {
+                var methodName = AstHelper.ExtractStringValue(member.Property);
+                if (string.IsNullOrEmpty(methodName))
+                    break;
+
+                switch (methodName.ToLowerInvariant())
+                {
+                    case "heated":
+                        config.Modifiers.Heat = CreateHeatType.Heated;
+                        break;
+                    case "superheated":
+                        config.Modifiers.Heat = CreateHeatType.Superheated;
+                        break;
+                    case "processingtime":
+                        // Извлекаем аргумент: .processingTime(500)
+                        if (TryExtractIntArgument(member, out var time))
+                        {
+                            config.Modifiers.ProcessingTime = time;
+                        }
+                        break;
+                    case "keephelditem":
+                        config.Modifiers.KeepHeldItem = true;
+                        break;
+                    // ... другие модификаторы ...
+                    default:
+                        // Неизвестный модификатор — пропускаем
+                        break;
+                }
+
+                // Переходим к следующему уровню вложенности
+                currentCallee = member.Object;
+            }
+        }
+
+        /// <summary>
+        /// Извлекает первый аргумент как int (для processingTime, loops и т.д.)
+        /// </summary>
+        private static bool TryExtractIntArgument(MemberExpression member, out int value)
+        {
+            value = 0;
+
+            // member.Object должен быть CallExpression (в котором вызов предыдущего метода)
+            if (member.Object is not CallExpression call)
+                return false;
+
+            if (call.Arguments.Count == 0)
+                return false;
+
+            var arg = call.Arguments[0];
+            if (arg is Literal literal && literal.Value is double d)
+            {
+                value = (int)d;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Проверяет, является ли вызов event.recipes.create.*
         /// </summary>
+        private static bool IsCreateRecipeCall(MemberExpression member)
+        {
+            // event.recipes.create.method (4 уровня вложенности)
+            if (member.Property is Identifier methodId &&
+                member.Object is MemberExpression createMember &&
+                createMember.Property is Identifier createId &&
+                createMember.Object is MemberExpression recipesMember &&
+                recipesMember.Property is Identifier recipesId &&
+                recipesMember.Object is Identifier eventId)
+            {
+                var obj = AstHelper.ExtractStringValue(eventId);
+                var prop = AstHelper.ExtractStringValue(recipesId);
+                var create = AstHelper.ExtractStringValue(createId);
+
+                return obj == "event" && prop == "recipes" && create == "create";
+            }
+            return false;
+        }
+
         /// <summary>
         /// Проверяет, является ли вызов event.recipes.create.*
         /// </summary>
@@ -80,9 +204,6 @@ namespace KubeAutomation.GenerationStrategies.Parsing.Create
             return false;
         }
 
-        /// <summary>
-        /// Извлекает имя метода из вызова
-        /// </summary>
         /// <summary>
         /// Извлекает имя метода из вызова (в нижнем регистре)
         /// </summary>

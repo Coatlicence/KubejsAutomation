@@ -42,7 +42,9 @@ class Program
 
         //GenCreateRecipes();
 
-        TestJS();
+        TestCreateChains();
+
+        //TestJS();
 
         Console.WriteLine("Система автоматизации KubeJS скриптов");
         Console.WriteLine("===============================================");
@@ -233,6 +235,69 @@ class Program
 
     }
 
+    private static void TestCreateChains()
+    {
+        Console.WriteLine("=== Тест: Цепочки модификаторов Create ===\n");
+
+        // 1. Создаём конфиг с модификаторами
+        var config = new CreateMixingConfig();
+        config.Inputs.Add(new CreateItemIngredientComponent { ItemId = "minecraft:coal" });
+        config.Inputs.Add(new CreateFluidIngredientComponent { FluidId = "minecraft:water", Amount = 1000 });
+        config.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:diamond", Count = 1, Chance = 0.5f });
+        config.Outputs.Add(new CreateItemComponent { ItemId = "minecraft:stick", Count = 1, Chance = 0.5f });
+
+        config.Modifiers.Heat = CreateHeatType.Superheated;
+
+        Console.WriteLine("1. Исходный конфиг:");
+        Console.WriteLine($"   Inputs: {config.Inputs.Count}, Outputs: {config.Outputs.Count}");
+        Console.WriteLine($"   Heat: {config.Modifiers.Heat}, Chance: {config.Outputs[0].Chance}");
+        Console.WriteLine();
+
+        // 2. Генерация в JS
+        string generatedCode = config.GenerateJsCode();
+        Console.WriteLine("2. Сгенерированный код:");
+        Console.WriteLine(generatedCode);
+        Console.WriteLine();
+
+        // 3. Сохраняем во временный файл
+        string tempFile = Path.Combine(Path.GetTempPath(), "test_create_chain.js");
+        string fullJs = $"ServerEvents.recipes(event => {{\n    {generatedCode}\n}});";
+        File.WriteAllText(tempFile, fullJs);
+        Console.WriteLine($"3. Временный файл: {tempFile}");
+        Console.WriteLine();
+
+        // 4. Парсим обратно
+        var parser = new JsRecipeParser();
+        var configs = parser.ParseFile(tempFile);
+        Console.WriteLine($"4. Распознано элементов: {configs.Count}");
+
+        if (configs.Count > 0 && configs[0] is CreateMixingConfig parsedConfig)
+        {
+            Console.WriteLine("5. Распознанный конфиг:");
+            Console.WriteLine($"   Inputs: {parsedConfig.Inputs.Count}, Outputs: {parsedConfig.Outputs.Count}");
+            Console.WriteLine($"   Heat: {parsedConfig.Modifiers.Heat}, Chance: {parsedConfig.Outputs[0].Chance}");
+
+            // Проверка соответствия
+            bool matches = config.Inputs.Count == parsedConfig.Inputs.Count &&
+                          config.Outputs.Count == parsedConfig.Outputs.Count &&
+                          config.Modifiers.Heat == parsedConfig.Modifiers.Heat &&
+                          config.Outputs[0].Chance == parsedConfig.Outputs[0].Chance;
+
+            Console.WriteLine($"   Соответствие: {(matches ? "✅ OK" : "❌ FAIL")}");
+        }
+        else
+        {
+            Console.WriteLine("5. ❌ Не удалось распознать CreateMixingConfig");
+            if (configs.Count > 0)
+            {
+                Console.WriteLine($"   Фактический тип: {configs[0].GetType().Name}");
+            }
+        }
+
+        // 6. Очистка
+        try { File.Delete(tempFile); } catch { }
+        Console.WriteLine("\n=== Тест завершён ===");
+    }
     // Асинхронная функция для запуска внешнего приложения и получения данных из именного канала
     public static async Task StartExternalAppAsync()
     {

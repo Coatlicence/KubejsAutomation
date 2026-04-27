@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.Create
 {
@@ -29,8 +31,13 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.Create
             Validate();
 
             const string indent = "    ";
-            var outputsString = $"[{string.Join(", ", Outputs.Select(o => o.ToJsString()))}]";
-            var inputsString = $"[{string.Join(", ", Inputs.Select(i => i.ToJsString()))}]";
+            var outputsString = Outputs.Count == 1
+                ? Outputs[0].ToJsString() // Без скобок, если 1 элемент
+                : $"[{string.Join(", ", Outputs.Select(o => o.ToJsString()))}]";
+
+            var inputsString = Inputs.Count == 1
+                ? Inputs[0].ToJsString() // Без скобок, если 1 элемент
+                : $"[{string.Join(", ", Inputs.Select(i => i.ToJsString()))}]";
 
             var baseCall = $"{indent}event.recipes.create.mixing({outputsString}, {inputsString})";
             var modifierChain = GenerateModifierChain();

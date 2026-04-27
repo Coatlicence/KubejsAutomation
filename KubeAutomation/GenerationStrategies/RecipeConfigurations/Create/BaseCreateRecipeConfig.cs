@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Globalization;
+using System.Linq;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
 namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.Create
@@ -90,15 +91,20 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.Create
             }
         }
 
-        /// <summary>
-        /// Валидация модификаторов
-        /// </summary>
+        // В BaseCreateRecipeConfig.ValidateModifiers():
         private List<string> ValidateModifiers(CreateRecipeConstraints constraints)
         {
             var errors = new List<string>();
 
-            if (Modifiers.Heat.HasValue && !constraints.SupportedModifiers.Contains(CreateModifierType.Heated))
-                errors.Add($"Модификатор Heat не поддерживается для {GetType().Name}");
+            if (Modifiers.Heat.HasValue)
+            {
+                var heatModifier = Modifiers.Heat == CreateHeatType.Heated
+                    ? CreateModifierType.Heated
+                    : CreateModifierType.Superheated;
+
+                if (!constraints.SupportedModifiers.Contains(heatModifier))
+                    errors.Add($"Модификатор Heat не поддерживается для {GetType().Name}");
+            }
 
             if (Modifiers.ProcessingTime.HasValue && !constraints.SupportedModifiers.Contains(CreateModifierType.ProcessingTime))
                 errors.Add($"Модификатор ProcessingTime не поддерживается для {GetType().Name}");
@@ -108,7 +114,6 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.Create
 
             return errors;
         }
-
         /// <summary>
         /// Валидация использования флюидов
         /// </summary>
