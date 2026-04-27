@@ -42,7 +42,12 @@ class Program
 
         //GenCreateRecipes();
 
-        TestCreateChains();
+        //TestCreateChains();
+
+        GamePathProvider.SetGameRootPath("C:\\Users\\f0578\\AppData\\Roaming\\.tlauncher\\legacy\\Minecraft\\Create Cog and Circuit New 1.21");
+
+        await RunItemDemo();
+
 
         //TestJS();
 
@@ -662,5 +667,125 @@ class Program
         Console.WriteLine();
 
         Console.WriteLine("=== Конец примеров ===");
+    }
+
+    private static Dictionary<string, MinecraftItem> _itemDatabase = new();
+
+    private static async Task LoadItemsAsync()
+    {
+        var extractor = new ItemFluidWithIconExtractor();
+        if (!extractor.IsValid())
+        {
+            Console.WriteLine("Путь к иконкам недействителен.");
+            return;
+        }
+
+        var data = await extractor.ExtractAsync();
+        // Объединяем Items и Fluids в один словарь
+        foreach (var item in data.Items)
+        {
+            _itemDatabase[item.Id] = item;
+        }
+        foreach (var fluid in data.Fluids)
+        {
+            _itemDatabase[fluid.Id] = fluid;
+        }
+
+        Console.WriteLine($"Загружено {_itemDatabase.Count} элементов.\n");
+    }
+
+    private static void ShowSampleItems(int count = 10)
+    {
+        Console.WriteLine($"=== Первые {count} элементов из базы данных ===");
+        int shown = 0;
+        foreach (var kvp in _itemDatabase)
+        {
+            if (shown >= count) break;
+
+            Console.WriteLine($"ID: {kvp.Key}");
+            Console.WriteLine($"  Название: {kvp.Value.LocalizedName}");
+            Console.WriteLine($"  Мод: {kvp.Value.ModName}");
+            Console.WriteLine($"  Тип: {kvp.Value.Type}");
+            Console.WriteLine($"  Теги: {string.Join(", ", kvp.Value.Tags)}");
+            Console.WriteLine($"  Размер изображения: {kvp.Value.ImageData.Length} байт");
+            Console.WriteLine();
+
+            shown++;
+        }
+    }
+
+    private static void SearchAndDisplay(string query)
+    {
+        var results = FindItemsByName(query);
+
+        Console.WriteLine($"\n=== Результаты поиска по запросу '{query}' ===");
+        if (results.Count == 0)
+        {
+            Console.WriteLine("Ничего не найдено.");
+            return;
+        }
+
+        foreach (var item in results)
+        {
+            Console.WriteLine($"ID: {item.Id}");
+            Console.WriteLine($"  Название: {item.LocalizedName}");
+            Console.WriteLine($"  Мод: {item.ModName}");
+            Console.WriteLine($"  Тип: {item.Type}");
+            Console.WriteLine($"  Теги: {string.Join(", ", item.Tags)}");
+            Console.WriteLine();
+        }
+    }
+
+    private static List<MinecraftItem> FindItemsByName(string nameQuery)
+    {
+        var results = new List<MinecraftItem>();
+        // Поиск без учёта регистра
+        string lowerQuery = nameQuery.ToLowerInvariant();
+
+        foreach (var kvp in _itemDatabase)
+        {
+            // Проверяем как локализованное название, так и ID
+            if (kvp.Value.LocalizedName.ToLowerInvariant().Contains(lowerQuery) ||
+                kvp.Key.ToLowerInvariant().Contains(lowerQuery))
+            {
+                results.Add(kvp.Value);
+            }
+        }
+
+        return results;
+    }
+
+    private static void DemoItemSearch()
+    {
+        Console.WriteLine("=== Демонстрация поиска ===");
+        Console.WriteLine("Введите часть названия или ID предмета/жидкости для поиска (или 'exit' для выхода):");
+
+        while (true)
+        {
+            Console.Write("> ");
+            string input = Console.ReadLine()?.Trim();
+
+            if (string.IsNullOrEmpty(input) || input.Equals("exit", StringComparison.OrdinalIgnoreCase))
+            {
+                break;
+            }
+
+            SearchAndDisplay(input);
+        }
+    }
+
+    // В вашем Main или вызывающем методе:
+    private static async Task RunItemDemo()
+    {
+        await LoadItemsAsync();
+
+        if (_itemDatabase.Count == 0)
+        {
+            Console.WriteLine("Не удалось загрузить данные. Проверьте пути и файлы.");
+            return;
+        }
+
+        ShowSampleItems(15);
+        DemoItemSearch();
     }
 }
