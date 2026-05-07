@@ -1,155 +1,587 @@
-using Esprima;
-using Esprima.Ast;
 using KubeAutomation;
 using KubeAutomation.FileSaveStrategies;
 using KubeAutomation.GenerationStrategies.Generators;
 using KubeAutomation.GenerationStrategies.Parsing;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations.Create;
-using KubeAutomation.GenerationStrategies.Templates;
 using KubeAutomation.Tests;
-using KubeScriptAutomation;
-using KubeScriptAutomation.Collectos;
 using LogExtractorLibrary;
+using Microsoft.UI.Xaml;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes; // Добавлено для NamedPipeClientStream
-using System.Linq;
-using System.Net.Http.Json;
-using System.Text.Json; // Добавлено для десериализации
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Xml.Serialization;
 
-class Program
+// --- Класс для логики ---
+internal static class MainLogic
 {
-     static readonly MyForm form = MyForm.GetInstance();
-
-    [STAThread]
-    static async Task Main()
+    public static async Task StartMainLogicAsync(WinUIWindow? mainWindow)
     {
-        // Запускаем форму в отдельном потоке
-        Thread formThread = new(() =>
+        if (mainWindow == null) return;
+        await mainWindow.RunItemDemo();
+        //await Task.Run(async () =>
+        //{
+        //    Console.WriteLine("Система автоматизации KubeJS скриптов");
+        //    Console.WriteLine("===============================================");
+
+        //    GamePathProvider.SetGameRootPath("C:\\Users\\KOMP_2024\\AppData\\Roaming\\Create_Cog_And_Circut");
+
+        //    await RunItemDemo();
+
+        //    var inputCollector = new GregTechRecipeCodeGenerator.RecipeInputCollector();
+        //    var fileSaver = new RecipeFileSaver();
+
+        //    while (true)
+        //    {
+        //        Console.WriteLine("\nХотите создать новый рецепт? (да/нет/получить)");
+
+        //        string? res = Console.ReadLine()?.Trim().ToLower();
+
+        //        //if (res == "получить" || res == "п" || res == "g" || res == "get")
+        //        //{
+        //        //    _ = StartExternalAppAsync(mainWindow);
+        //        //}
+
+        //        if (res == "t" || res == "т" || res == "test" || res == "тест")
+        //        {
+        //            TestRunner.RunAll();
+        //            Console.WriteLine("\n\n\n   Введите любой символ для продолжения...");
+        //            Console.ReadKey();
+        //            continue;
+        //        }
+
+        //        if (res == "пр" || res == "gr")
+        //        {
+        //            try
+        //            {
+        //                var extractor = new RecipesExtractor();
+        //                Console.WriteLine($"Экстрактор готов к работе: {extractor.IsValid()}.");
+
+        //                var recipes = await extractor.ExtractAsync();
+        //                Console.WriteLine($"Получено {recipes.Count} рецептов.");
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                Console.WriteLine($"Ошибка при извлечении рецептов: {ex.Message}");
+        //            }
+        //        }
+
+        //        if (res == "н" || res == "нет" || res == "n" || res == "no")
+        //            break;
+
+        //        try
+        //        {
+        //            var config = inputCollector.Collect();
+        //            string script = GregTechRecipeCodeGenerator.Generate(config);
+
+        //            string? dir = null;
+        //            while (dir == null)
+        //            {
+        //                Console.WriteLine("Введите путь сохранения");
+        //                dir = Console.ReadLine()?.Trim();
+
+        //                if (dir == "н" || dir == "нет" || dir == "n" || dir == "no")
+        //                {
+        //                    dir = "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы";
+        //                    break;
+        //                }
+        //            }
+
+        //            Console.WriteLine("\nРецепт успешно создан!");
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            Console.WriteLine($"Ошибка при создании рецепта: {ex.Message}");
+        //        }
+        //    }
+        //    ServerRecipeType s2 = new();
+        //    Console.WriteLine(EmptyFunctionGenerator.GenerateTitle(s2));
+
+        //    Console.WriteLine("Программа завершена.");
+        //});
+    }
+
+    // --- Переносим все остальные методы из Program.cs сюда ---
+    // ... (скопируйте все методы из старого Program.cs, кроме Main и объявлений классов) ...
+    // Например:
+
+    //public static async Task StartExternalAppAsync(WinUIWindow mainWindow)
+    //{
+    //    //const string pipeName = "MyMinecraftItemsPipe"; // Не используется напрямую теперь
+    //    //string logPath = "C:\\Users\\nojda\\AppData\\Roaming\\.tlauncher\\legacy\\Minecraft\\game\\logs\\debug.log"; // Не нужно
+
+    //    await Task.Delay(1000);
+
+    //    var processStartInfo = new System.Diagnostics.ProcessStartInfo
+    //    {
+    //        FileName = @"C:\Users\nojda\source\repos\LogExtractor\LogExtractor\bin\Debug\net8.0\LogExtractor.exe",
+    //        Arguments = "all",
+    //        UseShellExecute = false,
+    //        CreateNoWindow = true,
+    //        RedirectStandardOutput = false,
+    //        RedirectStandardError = false
+    //    };
+
+    //    var process = System.Diagnostics.Process.Start(processStartInfo);
+    //    if (process == null)
+    //    {
+    //        Console.WriteLine("Ошибка: не удалось запустить внешнее приложение.");
+    //        return;
+    //    }
+
+    //    Console.WriteLine("Внешнее приложение запущено. Ожидание подключения к каналам...");
+
+    //    // === Подключаемся к каналу предметов/жидкостей ===
+    //    await ReceiveItemsAndFluidsAsync(process, mainWindow); // Передаем форму
+
+    //    // === Подключаемся к каналу рецептов ===
+    //    await ReceiveRecipesAsync(process, mainWindow); // Передаем форму
+
+    //    Console.WriteLine("Все данные получены из каналов.");
+    //}
+
+    //private static async Task ReceiveItemsAndFluidsAsync(System.Diagnostics.Process process, WinUIWindow mainWindow)
+    //{
+    //    const string pipeName = "MyMinecraftItemsPipe";
+
+    //    try
+    //    {
+    //        using var client = new System.IO.Pipes.NamedPipeClientStream(".", pipeName, System.IO.Pipes.PipeDirection.In);
+    //        await client.ConnectAsync(30000); // Асинхронное подключение
+    //        Console.WriteLine("Подключено к именованному каналу предметов/жидкостей.");
+
+    //        using var reader = new System.IO.StreamReader(client, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: false);
+    //        string lengthStr = await reader.ReadLineAsync();
+    //        if (!int.TryParse(lengthStr, out int itemsDataLength))
+    //        {
+    //            Console.WriteLine("Ошибка: не удалось прочитать длину данных предметов из канала.");
+    //            return;
+    //        }
+
+    //        var buffer = new byte[itemsDataLength];
+    //        int totalRead = 0;
+    //        while (totalRead < itemsDataLength)
+    //        {
+    //            int read = await client.ReadAsync(buffer, totalRead, itemsDataLength - totalRead);
+    //            if (read == 0) break;
+    //            totalRead += read;
+    //        }
+
+    //        if (totalRead != itemsDataLength)
+    //        {
+    //            Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {itemsDataLength}.");
+    //            return;
+    //        }
+
+    //        string itemsJson = System.Text.Encoding.UTF8.GetString(buffer);
+    //        var itemIds = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<string>>(itemsJson, new System.Text.Json.JsonSerializerOptions());
+
+    //        // Читаем ID жидкостей
+    //        string lengthStr2 = await reader.ReadLineAsync();
+    //        if (!int.TryParse(lengthStr2, out int fluidsDataLength))
+    //        {
+    //            Console.WriteLine("Ошибка: не удалось прочитать длину данных жидкостей из канала.");
+    //            return;
+    //        }
+
+    //        var buffer2 = new byte[fluidsDataLength];
+    //        totalRead = 0;
+    //        while (totalRead < fluidsDataLength)
+    //        {
+    //            int read = await client.ReadAsync(buffer2, totalRead, fluidsDataLength - totalRead);
+    //            if (read == 0) break;
+    //            totalRead += read;
+    //        }
+
+    //        if (totalRead != fluidsDataLength)
+    //        {
+    //            Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {fluidsDataLength}.");
+    //            return;
+    //        }
+
+    //        string fluidsJson = System.Text.Encoding.UTF8.GetString(buffer2);
+    //        var fluidIds = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<string>>(fluidsJson, new System.Text.Json.JsonSerializerOptions());
+
+    //        // Читаем количество изображений
+    //        string countItemsStr = await reader.ReadLineAsync();
+    //        string countFluidsStr = await reader.ReadLineAsync();
+
+    //        if (!int.TryParse(countItemsStr, out int totalItems) || !int.TryParse(countFluidsStr, out int totalFluids))
+    //        {
+    //            Console.WriteLine("Ошибка: не удалось прочитать количество изображений.");
+    //            return;
+    //        }
+
+    //        Console.WriteLine($"Ожидается {totalItems} изображений предметов и {totalFluids} изображений жидкостей.");
+
+    //        // Читаем изображения предметов
+    //        var itemImages = new System.Collections.Generic.Dictionary<string, byte[]>();
+    //        for (int i = 0; i < totalItems; i++)
+    //        {
+    //            string imgSizeStr = await reader.ReadLineAsync();
+    //            if (!int.TryParse(imgSizeStr, out int imgSize))
+    //            {
+    //                Console.WriteLine($"Ошибка: не удалось прочитать размер изображения предмета {i}.");
+    //                return;
+    //            }
+
+    //            var imgBuffer = new byte[imgSize];
+    //            int totalImgRead = 0;
+    //            while (totalImgRead < imgSize)
+    //            {
+    //                int read = await client.ReadAsync(imgBuffer, totalImgRead, imgSize - totalImgRead);
+    //                if (read == 0) break;
+    //                totalImgRead += read;
+    //            }
+
+    //            if (totalImgRead != imgSize)
+    //            {
+    //                Console.WriteLine($"Ошибка: прочитано {totalImgRead} байт изображения, ожидалось {imgSize}.");
+    //                return;
+    //            }
+
+    //            string id = itemIds[i];
+    //            itemImages[id] = imgBuffer;
+    //        }
+
+    //        // Читаем изображения жидкостей
+    //        var fluidImages = new System.Collections.Generic.Dictionary<string, byte[]>();
+    //        for (int i = 0; i < totalFluids; i++)
+    //        {
+    //            string imgSizeStr = await reader.ReadLineAsync();
+    //            if (!int.TryParse(imgSizeStr, out int imgSize))
+    //            {
+    //                Console.WriteLine($"Ошибка: не удалось прочитать размер изображения жидкости {i}.");
+    //                return;
+    //            }
+
+    //            var imgBuffer = new byte[imgSize];
+    //            int totalImgRead = 0;
+    //            while (totalImgRead < imgSize)
+    //            {
+    //                int read = await client.ReadAsync(imgBuffer, totalImgRead, imgSize - totalImgRead);
+    //                if (read == 0) break;
+    //                totalImgRead += read;
+    //            }
+
+    //            if (totalImgRead != imgSize)
+    //            {
+    //                Console.WriteLine($"Ошибка: прочитано {totalImgRead} байт изображения, ожидалось {imgSize}.");
+    //                return;
+    //            }
+
+    //            string id = fluidIds[i];
+    //            fluidImages[id] = imgBuffer;
+    //        }
+
+    //        Console.WriteLine($"Получено {itemIds.Count} ID предметов и {fluidIds.Count} ID жидкостей с изображениями.");
+
+
+    //        // Вызов метода формы для обновления данных
+    //        // Важно: вызывать через Invoke, если поток клиента отличается от потока формы
+    //        //var formInstance = MyForm.GetInstance();
+    //        //if (formInstance.InvokeRequired)
+    //        //{
+    //        //    formInstance.Invoke(new Action(() => formInstance.UpdateData(itemImages, fluidImages)));
+    //        //}
+    //        //else
+    //        //{
+    //        //    formInstance.UpdateData(itemImages, fluidImages);
+    //        //}
+
+    //        // *** КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ ***
+    //        // Вместо вызова formInstance.UpdateData(itemImages, fluidImages)
+    //        // Создаем список MinecraftItem из полученных данных
+    //        var allItems = new List<MinecraftItem>();
+
+    //        // Предположим, у вас есть метод, который создает MinecraftItem из id и imageBytes
+    //        // Используем простой пример, где ModName и Type известны или могут быть извлечены
+    //        // В реальности, вам нужно будет расширить ваш Extractor, чтобы он возвращал
+    //        // полные объекты MinecraftItem, а не только ID и изображения.
+    //        // Но для примера, создадим их с заглушками:
+
+    //        foreach (var id in itemIds)
+    //        {
+    //            if (itemImages.TryGetValue(id, out var imageData))
+    //            {
+    //                // Здесь вы можете вызвать метод извлекающий LocalizedName, ModName, Type, Tags из других источников
+    //                // или расширить ваш LogExtractor, чтобы он возвращал полные MinecraftItem объекты.
+    //                // Пока что используем заглушки:
+    //                var item = new MinecraftItem
+    //                {
+    //                    Id = id,
+    //                    LocalizedName = id, // Заглушка
+    //                    ModName = "Unknown Mod", // Заглушка
+    //                    Type = "item", // Заглушка
+    //                    Tags = new List<string>(), // Заглушка
+    //                    ImageData = imageData
+    //                };
+    //                allItems.Add(item);
+    //            }
+    //        }
+
+    //        foreach (var id in fluidIds)
+    //        {
+    //            if (fluidImages.TryGetValue(id, out var imageData))
+    //            {
+    //                var fluid = new MinecraftItem
+    //                {
+    //                    Id = id,
+    //                    LocalizedName = id, // Заглушка
+    //                    ModName = "Unknown Mod", // Заглушка
+    //                    Type = "fluid", // Заглушка
+    //                    Tags = new List<string>(), // Заглушка
+    //                    ImageData = imageData
+    //                };
+    //                allItems.Add(fluid);
+    //            }
+    //        }
+
+    //        // Вызываем метод WinUI окна для обновления предметов
+    //        // Это безопасно вызывать из любого потока, так как он использует DispatcherQueue
+    //        mainWindow.UpdateItems(allItems); // Вызов метода из WinUIWindow.xaml.cs
+    //    }
+    //    catch (System.TimeoutException)
+    //    {
+    //        Console.WriteLine("Ошибка: не удалось подключиться к каналу предметов/жидкостей в течение 30 секунд.");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (System.IO.IOException ex)
+    //    {
+    //        Console.WriteLine($"Ошибка именованного канала (предметы/жидкости): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (System.Text.Json.JsonException ex)
+    //    {
+    //        Console.WriteLine($"Ошибка десериализации JSON (предметы/жидкости): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"Произошла ошибка (предметы/жидкости): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //}
+
+    //private static async Task ReceiveRecipesAsync(System.Diagnostics.Process process, WinUIWindow mainwindow)
+    //{
+    //    const string pipeName = "MyMinecraftRecipesPipe";
+
+    //    try
+    //    {
+    //        using var client = new System.IO.Pipes.NamedPipeClientStream(".", pipeName, System.IO.Pipes.PipeDirection.In);
+    //        await client.ConnectAsync(30000); // Асинхронное подключение
+    //        Console.WriteLine("Подключено к именованному каналу рецептов.");
+
+    //        using var reader = new System.IO.StreamReader(client, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: false);
+    //        string lengthStr = await reader.ReadLineAsync();
+    //        if (!int.TryParse(lengthStr, out int dataLength))
+    //        {
+    //            Console.WriteLine("Ошибка: не удалось прочитать длину данных рецептов из канала.");
+    //            return;
+    //        }
+
+    //        var buffer = new byte[dataLength];
+    //        int totalRead = 0;
+    //        while (totalRead < dataLength)
+    //        {
+    //            int read = await client.ReadAsync(buffer, totalRead, dataLength - totalRead);
+    //            if (read == 0) break;
+    //            totalRead += read;
+    //        }
+
+    //        if (totalRead != dataLength)
+    //        {
+    //            Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {dataLength}.");
+    //            return;
+    //        }
+
+    //        string json = System.Text.Encoding.UTF8.GetString(buffer);
+    //        var recipes = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.List<string>>(json, new System.Text.Json.JsonSerializerOptions());
+
+    //        if (recipes != null)
+    //        {
+    //            Console.WriteLine($"Получено {recipes.Count} ID рецептов.");
+
+    //            // Вызов метода формы для обновления данных
+    //            //var formInstance = MyForm.GetInstance();
+    //            //if (formInstance.InvokeRequired)
+    //            //{
+    //            //    formInstance.Invoke(new Action(() => formInstance.UpdateRecipes(recipes)));
+    //            //}
+    //            //else
+    //            //{
+    //            //    formInstance.UpdateRecipes(recipes);
+    //            //}
+    //            mainwindow.UpdateRecipes(recipes);
+    //        }
+    //    }
+    //    catch (System.TimeoutException)
+    //    {
+    //        Console.WriteLine("Ошибка: не удалось подключиться к каналу рецептов в течение 30 секунд.");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (System.IO.IOException ex)
+    //    {
+    //        Console.WriteLine($"Ошибка именованного канала (рецепты): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (System.Text.Json.JsonException ex)
+    //    {
+    //        Console.WriteLine($"Ошибка десериализации JSON (рецепты): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"Произошла ошибка (рецепты): {ex.Message}");
+    //        if (!process.HasExited)
+    //        {
+    //            try { process.Kill(); }
+    //            catch { /* Игнорируем ошибки при завершении */ }
+    //        }
+    //    }
+    //}
+
+    //private static async Task RunItemDemo()
+    //{
+    //    var extractor = new ItemFluidWithIconExtractor();
+    //    if (!extractor.IsValid())
+    //    {
+    //        Console.WriteLine("Путь к иконкам недействителен.");
+    //        return;
+    //    }
+
+    //    var data = await extractor.ExtractAsync();
+    //    var _itemDatabase = new System.Collections.Generic.Dictionary<string, MinecraftItem>();
+
+    //    // Объединяем Items и Fluids в один словарь
+    //    foreach (var item in data.Items)
+    //    {
+    //        _itemDatabase[item.Id] = item;
+    //    }
+    //    foreach (var fluid in data.Fluids)
+    //    {
+    //        _itemDatabase[fluid.Id] = fluid;
+    //    }
+
+    //    Console.WriteLine($"Загружено {_itemDatabase.Count} элементов.\n");
+
+    //    Console.WriteLine($"=== Первые 10 элементов из базы данных ===");
+    //    int shown = 0;
+    //    foreach (var kvp in _itemDatabase)
+    //    {
+    //        if (shown >= 10) break;
+
+    //        Console.WriteLine($"ID: {kvp.Key}");
+    //        Console.WriteLine($"  Название: {kvp.Value.LocalizedName}");
+    //        Console.WriteLine($"  Мод: {kvp.Value.ModName}");
+    //        Console.WriteLine($"  Тип: {kvp.Value.Type}");
+    //        Console.WriteLine($"  Теги: {string.Join(", ", kvp.Value.Tags)}");
+    //        Console.WriteLine($"  Размер изображения: {kvp.Value.ImageData.Length} байт");
+    //        Console.WriteLine();
+
+    //        shown++;
+    //    }
+
+    //    Console.WriteLine("=== Демонстрация поиска ===");
+    //    Console.WriteLine("Введите часть названия или ID предмета/жидкости для поиска (или 'exit' для выхода):");
+
+    //    while (true)
+    //    {
+    //        Console.Write("> ");
+    //        string? input = Console.ReadLine()?.Trim();
+
+    //        if (string.IsNullOrEmpty(input) || input!.Equals("exit", StringComparison.OrdinalIgnoreCase))
+    //        {
+    //            break;
+    //        }
+
+    //        var results = FindItemsByName(input, _itemDatabase);
+
+    //        Console.WriteLine($"\n=== Результаты поиска по запросу '{input}' ===");
+    //        if (results.Count == 0)
+    //        {
+    //            Console.WriteLine("Ничего не найдено.");
+    //            continue;
+    //        }
+
+    //        foreach (var item in results)
+    //        {
+    //            Console.WriteLine($"ID: {item.Id}");
+    //            Console.WriteLine($"  Название: {item.LocalizedName}");
+    //            Console.WriteLine($"  Мод: {item.ModName}");
+    //            Console.WriteLine($"  Тип: {item.Type}");
+    //            Console.WriteLine($"  Теги: {string.Join(", ", item.Tags)}");
+    //            Console.WriteLine();
+    //        }
+    //    }
+    //}
+
+    private static System.Collections.Generic.List<MinecraftItem> FindItemsByName(string nameQuery, System.Collections.Generic.Dictionary<string, MinecraftItem> database)
+    {
+        var results = new System.Collections.Generic.List<MinecraftItem>();
+        // Поиск без учёта регистра
+        string lowerQuery = nameQuery.ToLowerInvariant();
+
+        foreach (var kvp in database)
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(form);
-        });
-        formThread.SetApartmentState(ApartmentState.STA);
-        formThread.IsBackground = true;
-        formThread.Start();
-
-        //GenCreateRecipes();
-
-        //TestCreateChains();
-
-        GamePathProvider.SetGameRootPath("C:\\Users\\f0578\\AppData\\Roaming\\.tlauncher\\legacy\\Minecraft\\Create Cog and Circuit New 1.21");
-
-        await RunItemDemo();
-
-
-        //TestJS();
-
-        Console.WriteLine("Система автоматизации KubeJS скриптов");
-        Console.WriteLine("===============================================");
-
-        var inputCollector = new GregTechRecipeCodeGenerator.RecipeInputCollector();
-        var fileSaver = new RecipeFileSaver();
-
-        while (true)
-        {
-            Console.WriteLine("\nХотите создать новый рецепт? (да/нет/получить)");
-
-            string res = Console.ReadLine()?.Trim().ToLower()!;
-
-            if (res == "получить" || res == "п" || res == "g" || res == "get")
+            // Проверяем как локализованное название, так и ID
+            if (kvp.Value.LocalizedName.ToLowerInvariant().Contains(lowerQuery) ||
+                kvp.Key.ToLowerInvariant().Contains(lowerQuery))
             {
-                // перенесено в форму
-                //_ = StartExternalAppAsync(); // Запускает задачу в фоне, не блокируя поток
-            }
-
-            if (res == "t" || res == "т" || res == "test" || res == "тест")
-            {
-                TestRunner.RunAll();
-                Console.WriteLine("\n\n\n   Введите любой символ для продолжения...");
-                Console.ReadKey();
-                continue;
-            }
-
-            if (res == "пр" || res == "gr")
-            {
-                try
-                {
-                    var extractor = new RecipesExtractor();
-                    Console.WriteLine($"Экстрактор готов к работе: {extractor.IsValid()}.");
-
-                    var recipes = await extractor.ExtractAsync();
-                    Console.WriteLine($"Получено {recipes.Count} рецептов.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Ошибка при извлечении рецептов: {ex.Message}");
-                }
-            }
-
-            if (res == "н" || res == "нет" || res == "n" || res == "no")
-                break;
-
-            try
-            {
-                var config = inputCollector.Collect();
-                string script = GregTechRecipeCodeGenerator.Generate(config);
-
-                string? dir = null;
-                while (dir == null)
-                {
-                    Console.WriteLine("Введите путь сохранения");
-                    dir = Console.ReadLine()?.Trim();
-
-                    if (dir == "н" || dir == "нет" || dir == "n" || dir == "no")
-                    {
-                        dir = "C:\\Users\\f0578\\OneDrive\\Desktop\\Предметы";
-                        break;
-                    }
-                }
-                
-                //fileSaver.Save(script, config.RecipeId, dir);
-
-                Console.WriteLine("\nРецепт успешно создан!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ошибка при создании рецепта: {ex.Message}");
+                results.Add(kvp.Value);
             }
         }
-        ServerRecipeType s2 = new();
-        Console.WriteLine(EmptyFunctionGenerator.GenerateTitle(s2));
 
-        Console.WriteLine("Программа завершена.");
+        return results;
     }
 
     public static void TestJS()
     {
         Console.WriteLine("=== Тест парсера JS ===\n");
 
-        string testFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "test_recipes.js");
+        string testFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "test_recipes.js");
 
-        if (!File.Exists(testFilePath))
+        if (!System.IO.File.Exists(testFilePath))
         {
             testFilePath = "test_recipes.js";
         }
 
-        Console.WriteLine($"Путь к файлу: {Path.GetFullPath(testFilePath)}");
-        Console.WriteLine($"Файл существует: {File.Exists(testFilePath)}\n");
+        Console.WriteLine($"Путь к файлу: {System.IO.Path.GetFullPath(testFilePath)}");
+        Console.WriteLine($"Файл существует: {System.IO.File.Exists(testFilePath)}\n");
 
-        if (!File.Exists(testFilePath))
+        if (!System.IO.File.Exists(testFilePath))
         {
             Console.WriteLine("[ERROR] Файл не найден! Создайте test_recipes.js в корне проекта.");
             Console.ReadKey();
             return;
         }
-
 
         try
         {
@@ -217,7 +649,6 @@ class Program
             Console.WriteLine($"   Всего: {configs.Count}");
             Console.WriteLine("\n--------------------------------------------------");
 
-
             // Генерация обратно в JS
             Console.WriteLine($"\n=== Генерация обратно в JS ===");
             foreach (var config in configs)
@@ -237,7 +668,6 @@ class Program
         Console.WriteLine("\n=== Тест завершён ===");
         Console.WriteLine("Нажмите любую клавишу для выхода...");
         Console.ReadKey();
-
     }
 
     private static void TestCreateChains()
@@ -265,9 +695,9 @@ class Program
         Console.WriteLine();
 
         // 3. Сохраняем во временный файл
-        string tempFile = Path.Combine(Path.GetTempPath(), "test_create_chain.js");
+        string tempFile = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "test_create_chain.js");
         string fullJs = $"ServerEvents.recipes(event => {{\n    {generatedCode}\n}});";
-        File.WriteAllText(tempFile, fullJs);
+        System.IO.File.WriteAllText(tempFile, fullJs);
         Console.WriteLine($"3. Временный файл: {tempFile}");
         Console.WriteLine();
 
@@ -300,301 +730,8 @@ class Program
         }
 
         // 6. Очистка
-        try { File.Delete(tempFile); } catch { }
+        try { System.IO.File.Delete(tempFile); } catch { }
         Console.WriteLine("\n=== Тест завершён ===");
-    }
-    // Асинхронная функция для запуска внешнего приложения и получения данных из именного канала
-    public static async Task StartExternalAppAsync()
-    {
-        //const string pipeName = "MyMinecraftItemsPipe"; // Не используется напрямую теперь
-        //string logPath = "C:\\Users\\nojda\\AppData\\Roaming\\.tlauncher\\legacy\\Minecraft\\game\\logs\\debug.log"; // Не нужно
-
-        await Task.Delay(1000);
-
-        var processStartInfo = new System.Diagnostics.ProcessStartInfo
-        {
-            FileName = @"C:\Users\nojda\source\repos\LogExtractor\LogExtractor\bin\Debug\net8.0\LogExtractor.exe",
-            Arguments = "all",
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            RedirectStandardOutput = false,
-            RedirectStandardError = false
-        };
-
-        var process = System.Diagnostics.Process.Start(processStartInfo);
-        if (process == null)
-        {
-            Console.WriteLine("Ошибка: не удалось запустить внешнее приложение.");
-            return;
-        }
-
-        Console.WriteLine("Внешнее приложение запущено. Ожидание подключения к каналам...");
-
-        // === Подключаемся к каналу предметов/жидкостей ===
-        await ReceiveItemsAndFluidsAsync(process);
-
-        // === Подключаемся к каналу рецептов ===
-        await ReceiveRecipesAsync(process);
-
-        Console.WriteLine("Все данные получены из каналов.");
-    }
-
-    private static async Task ReceiveItemsAndFluidsAsync(System.Diagnostics.Process process)
-    {
-        const string pipeName = "MyMinecraftItemsPipe";
-
-        try
-        {
-            using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
-            await client.ConnectAsync(30000); // Асинхронное подключение
-            Console.WriteLine("Подключено к именованному каналу предметов/жидкостей.");
-
-            using var reader = new StreamReader(client, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: false);
-            string lengthStr = await reader.ReadLineAsync();
-            if (!int.TryParse(lengthStr, out int itemsDataLength))
-            {
-                Console.WriteLine("Ошибка: не удалось прочитать длину данных предметов из канала.");
-                return;
-            }
-
-            var buffer = new byte[itemsDataLength];
-            int totalRead = 0;
-            while (totalRead < itemsDataLength)
-            {
-                int read = await client.ReadAsync(buffer, totalRead, itemsDataLength - totalRead);
-                if (read == 0) break;
-                totalRead += read;
-            }
-
-            if (totalRead != itemsDataLength)
-            {
-                Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {itemsDataLength}.");
-                return;
-            }
-
-            string itemsJson = System.Text.Encoding.UTF8.GetString(buffer);
-            var itemIds = JsonSerializer.Deserialize<List<string>>(itemsJson, new JsonSerializerOptions());
-
-            // Читаем ID жидкостей
-            string lengthStr2 = await reader.ReadLineAsync();
-            if (!int.TryParse(lengthStr2, out int fluidsDataLength))
-            {
-                Console.WriteLine("Ошибка: не удалось прочитать длину данных жидкостей из канала.");
-                return;
-            }
-
-            var buffer2 = new byte[fluidsDataLength];
-            totalRead = 0;
-            while (totalRead < fluidsDataLength)
-            {
-                int read = await client.ReadAsync(buffer2, totalRead, fluidsDataLength - totalRead);
-                if (read == 0) break;
-                totalRead += read;
-            }
-
-            if (totalRead != fluidsDataLength)
-            {
-                Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {fluidsDataLength}.");
-                return;
-            }
-
-            string fluidsJson = System.Text.Encoding.UTF8.GetString(buffer2);
-            var fluidIds = JsonSerializer.Deserialize<List<string>>(fluidsJson, new JsonSerializerOptions());
-
-            // Читаем количество изображений
-            string countItemsStr = await reader.ReadLineAsync();
-            string countFluidsStr = await reader.ReadLineAsync();
-
-            if (!int.TryParse(countItemsStr, out int totalItems) || !int.TryParse(countFluidsStr, out int totalFluids))
-            {
-                Console.WriteLine("Ошибка: не удалось прочитать количество изображений.");
-                return;
-            }
-
-            Console.WriteLine($"Ожидается {totalItems} изображений предметов и {totalFluids} изображений жидкостей.");
-
-            // Читаем изображения предметов
-            var itemImages = new Dictionary<string, byte[]>();
-            for (int i = 0; i < totalItems; i++)
-            {
-                string imgSizeStr = await reader.ReadLineAsync();
-                if (!int.TryParse(imgSizeStr, out int imgSize))
-                {
-                    Console.WriteLine($"Ошибка: не удалось прочитать размер изображения предмета {i}.");
-                    return;
-                }
-
-                var imgBuffer = new byte[imgSize];
-                int totalImgRead = 0;
-                while (totalImgRead < imgSize)
-                {
-                    int read = await client.ReadAsync(imgBuffer, totalImgRead, imgSize - totalImgRead);
-                    if (read == 0) break;
-                    totalImgRead += read;
-                }
-
-                if (totalImgRead != imgSize)
-                {
-                    Console.WriteLine($"Ошибка: прочитано {totalImgRead} байт изображения, ожидалось {imgSize}.");
-                    return;
-                }
-
-                string id = itemIds[i];
-                itemImages[id] = imgBuffer;
-            }
-
-            // Читаем изображения жидкостей
-            var fluidImages = new Dictionary<string, byte[]>();
-            for (int i = 0; i < totalFluids; i++)
-            {
-                string imgSizeStr = await reader.ReadLineAsync();
-                if (!int.TryParse(imgSizeStr, out int imgSize))
-                {
-                    Console.WriteLine($"Ошибка: не удалось прочитать размер изображения жидкости {i}.");
-                    return;
-                }
-
-                var imgBuffer = new byte[imgSize];
-                int totalImgRead = 0;
-                while (totalImgRead < imgSize)
-                {
-                    int read = await client.ReadAsync(imgBuffer, totalImgRead, imgSize - totalImgRead);
-                    if (read == 0) break;
-                    totalImgRead += read;
-                }
-
-                if (totalImgRead != imgSize)
-                {
-                    Console.WriteLine($"Ошибка: прочитано {totalImgRead} байт изображения, ожидалось {imgSize}.");
-                    return;
-                }
-
-                string id = fluidIds[i];
-                fluidImages[id] = imgBuffer;
-            }
-
-            Console.WriteLine($"Получено {itemIds.Count} ID предметов и {fluidIds.Count} ID жидкостей с изображениями.");
-
-
-            MyForm.GetInstance().UpdateData(itemImages, fluidImages);
-        }
-        catch (TimeoutException)
-        {
-            Console.WriteLine("Ошибка: не удалось подключиться к каналу предметов/жидкостей в течение 30 секунд.");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Ошибка именованного канала (предметы/жидкости): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (JsonException ex)
-        {
-            Console.WriteLine($"Ошибка десериализации JSON (предметы/жидкости): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Произошла ошибка (предметы/жидкости): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-    }
-
-    private static async Task ReceiveRecipesAsync(System.Diagnostics.Process process)
-    {
-        const string pipeName = "MyMinecraftRecipesPipe";
-
-        try
-        {
-            using var client = new NamedPipeClientStream(".", pipeName, PipeDirection.In);
-            await client.ConnectAsync(30000); // Асинхронное подключение
-            Console.WriteLine("Подключено к именованному каналу рецептов.");
-
-            using var reader = new StreamReader(client, System.Text.Encoding.UTF8, detectEncodingFromByteOrderMarks: false, bufferSize: 1024, leaveOpen: false);
-            string lengthStr = await reader.ReadLineAsync();
-            if (!int.TryParse(lengthStr, out int dataLength))
-            {
-                Console.WriteLine("Ошибка: не удалось прочитать длину данных рецептов из канала.");
-                return;
-            }
-
-            var buffer = new byte[dataLength];
-            int totalRead = 0;
-            while (totalRead < dataLength)
-            {
-                int read = await client.ReadAsync(buffer, totalRead, dataLength - totalRead);
-                if (read == 0) break;
-                totalRead += read;
-            }
-
-            if (totalRead != dataLength)
-            {
-                Console.WriteLine($"Ошибка: прочитано {totalRead} байт, ожидалось {dataLength}.");
-                return;
-            }
-
-            string json = System.Text.Encoding.UTF8.GetString(buffer);
-            var recipes = JsonSerializer.Deserialize<List<string>>(json, new JsonSerializerOptions());
-
-            if (recipes != null)
-            {
-                Console.WriteLine($"Получено {recipes.Count} ID рецептов.");
-
-                MyForm.GetInstance().UpdateRecipes(recipes);
-            }
-        }
-        catch (TimeoutException)
-        {
-            Console.WriteLine("Ошибка: не удалось подключиться к каналу рецептов в течение 30 секунд.");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (IOException ex)
-        {
-            Console.WriteLine($"Ошибка именованного канала (рецепты): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (JsonException ex)
-        {
-            Console.WriteLine($"Ошибка десериализации JSON (рецепты): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Произошла ошибка (рецепты): {ex.Message}");
-            if (!process.HasExited)
-            {
-                try { process.Kill(); }
-                catch { /* Игнорируем ошибки при завершении */ }
-            }
-        }
     }
 
     private static void GenCreateRecipes()
@@ -668,124 +805,18 @@ class Program
 
         Console.WriteLine("=== Конец примеров ===");
     }
+}
 
-    private static Dictionary<string, MinecraftItem> _itemDatabase = new();
-
-    private static async Task LoadItemsAsync()
+// --- Основной метод запуска WinUI ---
+public partial class Program
+{
+    [STAThread]
+    public static void Main(string[] args)
     {
-        var extractor = new ItemFluidWithIconExtractor();
-        if (!extractor.IsValid())
-        {
-            Console.WriteLine("Путь к иконкам недействителен.");
-            return;
-        }
+        // Инициализация WinUI ComWrappers (обязательно до первого вызова WinUI)
+        WinRT.ComWrappersSupport.InitializeComWrappers();
 
-        var data = await extractor.ExtractAsync();
-        // Объединяем Items и Fluids в один словарь
-        foreach (var item in data.Items)
-        {
-            _itemDatabase[item.Id] = item;
-        }
-        foreach (var fluid in data.Fluids)
-        {
-            _itemDatabase[fluid.Id] = fluid;
-        }
-
-        Console.WriteLine($"Загружено {_itemDatabase.Count} элементов.\n");
-    }
-
-    private static void ShowSampleItems(int count = 10)
-    {
-        Console.WriteLine($"=== Первые {count} элементов из базы данных ===");
-        int shown = 0;
-        foreach (var kvp in _itemDatabase)
-        {
-            if (shown >= count) break;
-
-            Console.WriteLine($"ID: {kvp.Key}");
-            Console.WriteLine($"  Название: {kvp.Value.LocalizedName}");
-            Console.WriteLine($"  Мод: {kvp.Value.ModName}");
-            Console.WriteLine($"  Тип: {kvp.Value.Type}");
-            Console.WriteLine($"  Теги: {string.Join(", ", kvp.Value.Tags)}");
-            Console.WriteLine($"  Размер изображения: {kvp.Value.ImageData.Length} байт");
-            Console.WriteLine();
-
-            shown++;
-        }
-    }
-
-    private static void SearchAndDisplay(string query)
-    {
-        var results = FindItemsByName(query);
-
-        Console.WriteLine($"\n=== Результаты поиска по запросу '{query}' ===");
-        if (results.Count == 0)
-        {
-            Console.WriteLine("Ничего не найдено.");
-            return;
-        }
-
-        foreach (var item in results)
-        {
-            Console.WriteLine($"ID: {item.Id}");
-            Console.WriteLine($"  Название: {item.LocalizedName}");
-            Console.WriteLine($"  Мод: {item.ModName}");
-            Console.WriteLine($"  Тип: {item.Type}");
-            Console.WriteLine($"  Теги: {string.Join(", ", item.Tags)}");
-            Console.WriteLine();
-        }
-    }
-
-    private static List<MinecraftItem> FindItemsByName(string nameQuery)
-    {
-        var results = new List<MinecraftItem>();
-        // Поиск без учёта регистра
-        string lowerQuery = nameQuery.ToLowerInvariant();
-
-        foreach (var kvp in _itemDatabase)
-        {
-            // Проверяем как локализованное название, так и ID
-            if (kvp.Value.LocalizedName.ToLowerInvariant().Contains(lowerQuery) ||
-                kvp.Key.ToLowerInvariant().Contains(lowerQuery))
-            {
-                results.Add(kvp.Value);
-            }
-        }
-
-        return results;
-    }
-
-    private static void DemoItemSearch()
-    {
-        Console.WriteLine("=== Демонстрация поиска ===");
-        Console.WriteLine("Введите часть названия или ID предмета/жидкости для поиска (или 'exit' для выхода):");
-
-        while (true)
-        {
-            Console.Write("> ");
-            string input = Console.ReadLine()?.Trim();
-
-            if (string.IsNullOrEmpty(input) || input.Equals("exit", StringComparison.OrdinalIgnoreCase))
-            {
-                break;
-            }
-
-            SearchAndDisplay(input);
-        }
-    }
-
-    // В вашем Main или вызывающем методе:
-    private static async Task RunItemDemo()
-    {
-        await LoadItemsAsync();
-
-        if (_itemDatabase.Count == 0)
-        {
-            Console.WriteLine("Не удалось загрузить данные. Проверьте пути и файлы.");
-            return;
-        }
-
-        ShowSampleItems(15);
-        DemoItemSearch();
+        // Запуск WinUI Application
+        Microsoft.UI.Xaml.Application.Start((p) => new App());
     }
 }

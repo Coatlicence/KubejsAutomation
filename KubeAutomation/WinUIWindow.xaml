@@ -1,0 +1,281 @@
+<Window
+    x:Class="KubeAutomation.WinUIWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:KubeAutomation"
+    Title="KubeJS Automation - WinUI 3">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Для поиска -->
+            <RowDefinition Height="*"/>
+            <!-- Для основного контента -->
+            <RowDefinition Height="Auto"/>
+            <!-- Для консоли -->
+        </Grid.RowDefinitions>
+
+        <!-- Панель поиска (оставляем как есть) -->
+        <Grid Grid.Row="0" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="SearchBox" Grid.Column="0" PlaceholderText="Search items..." KeyUp="SearchBox_KeyUp" TextChanged="SearchBox_TextChanged"/>
+            <Button Grid.Column="1" Content="Clear" Click="ClearSearch_Click" Margin="5,0,0,0"/>
+
+            <ListView x:Name="AutocompleteListView"
+                      Grid.Row="0" Grid.Column="0"
+                      Visibility="Collapsed"
+                      Height="Auto"
+                      MaxHeight="200"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      SelectionChanged="AutocompleteListView_SelectionChanged"
+                      KeyUp="AutocompleteListView_KeyUp"
+                      LostFocus="AutocompleteListView_LostFocus"
+                      Margin="0,30,0,0" />
+        </Grid>
+
+        <!-- Основной контент (оставляем как есть) -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая панель: Список предметов -->
+            <ScrollViewer Grid.Column="0" Margin="10">
+                <ItemsRepeater x:Name="ItemsRepeater" ItemsSource="{x:Bind FilteredItems, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout MinItemWidth="100" MinItemHeight="100" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="local:MinecraftItemViewModel">
+                            <Border Margin="5" Padding="5" BorderBrush="Black" BorderThickness="1" Background="LightGray"
+                                    Tag="{x:Bind}"
+                                    PointerPressed="ItemBorder_PointerPressed">
+                                <Image Source="{x:Bind Image, Mode=OneWay}" Width="64" Height="64" Stretch="Uniform" />
+                                <ToolTipService.ToolTip>
+                                    <StackPanel>
+                                        <TextBlock Text="{x:Bind LocalizedName}" FontWeight="Bold"/>
+                                        <TextBlock Text="{x:Bind ModName}"/>
+                                        <TextBlock Text="{x:Bind Id}"/>
+                                    </StackPanel>
+                                </ToolTipService.ToolTip>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <!-- Правая панель: форма рецепта + список рецептов -->
+            <Grid Grid.Column="1" Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Форма MinecraftStandardRecipe -->
+                <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,10">
+                    <TextBlock Text="Стандартный рецепт Minecraft" FontWeight="SemiBold" FontSize="14"/>
+
+                    <!-- Выбор типа рецепта -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Тип:" VerticalAlignment="Center" Width="60"/>
+                        <ComboBox x:Name="BlockComboBox"
+                                  ItemsSource="{x:Bind ViewModel.RecipeBlocks, Mode=OneWay}"
+                                  Width="160"
+                                  SelectionChanged="BlockComboBox_SelectionChanged"/>
+                    </StackPanel>
+
+                    <!-- Входной предмет (Amount всегда 1) -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Вход:" VerticalAlignment="Center" Width="60"/>
+                        <Border x:Name="InputSlot"
+                                Width="64" Height="64"
+                                BorderBrush="Gray" BorderThickness="2"
+                                Background="LightGray"
+                                CornerRadius="4"
+                                PointerPressed="InputSlot_PointerPressed"
+                                ToolTipService.ToolTip="Нажмите, затем кликните предмет в сетке">
+                            <Grid>
+                                <Image x:Name="InputItemImage" Width="56" Height="56" Stretch="Uniform"/>
+                                <TextBlock x:Name="InputItemLabel"
+                                           Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="20" Foreground="DarkGray"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="{x:Bind ViewModel.InputItemId, Mode=OneWay}"
+                                   VerticalAlignment="Center" MaxWidth="200" TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Выходной предмет + количество -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Выход:" VerticalAlignment="Center" Width="60"/>
+                        <Border x:Name="OutputSlot"
+                                Width="64" Height="64"
+                                BorderBrush="Gray" BorderThickness="2"
+                                Background="LightGray"
+                                CornerRadius="4"
+                                PointerPressed="OutputSlot_PointerPressed"
+                                ToolTipService.ToolTip="Нажмите, затем кликните предмет в сетке">
+                            <Grid>
+                                <Image x:Name="OutputItemImage" Width="56" Height="56" Stretch="Uniform"/>
+                                <TextBlock x:Name="OutputItemLabel"
+                                           Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           FontSize="20" Foreground="DarkGray"/>
+                            </Grid>
+                        </Border>
+                        <StackPanel VerticalAlignment="Center" Spacing="4">
+                            <TextBlock Text="{x:Bind ViewModel.OutputItemId, Mode=OneWay}"
+                                       MaxWidth="160" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="Кол-во:" VerticalAlignment="Center"/>
+                                <NumberBox x:Name="OutputAmountBox"
+                                           Minimum="1" Maximum="64" SmallChange="1"
+                                           Value="{x:Bind ViewModel.OutputAmount, Mode=TwoWay}"
+                                           Width="Auto"
+                                           SpinButtonPlacementMode="Inline"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Опыт (только для smoking) -->
+                    <StackPanel x:Name="ExperiencePanel"
+                                Orientation="Horizontal" Spacing="8"
+                                Visibility="Collapsed">
+                        <TextBlock Text="Опыт:" VerticalAlignment="Center" Width="60"/>
+                        <NumberBox x:Name="ExperienceBox"
+                                   Minimum="0" Maximum="100" SmallChange="0.1"
+                                   Value="{x:Bind ViewModel.Experience, Mode=TwoWay}"
+                                   Width="120"
+                                   SpinButtonPlacementMode="Inline"/>
+                    </StackPanel>
+
+                    <!-- Статус выбора слота -->
+                    <TextBlock x:Name="SlotSelectionStatus"
+                               Text="" Foreground="DodgerBlue" FontStyle="Italic"/>
+
+                    <!-- Кнопка генерации -->
+                    <Button x:Name="GenerateRecipeButton"
+                            Content="Сгенерировать рецепт"
+                            Click="GenerateRecipeButton_Click"
+                            HorizontalAlignment="Left"/>
+
+                    <TextBlock x:Name="GeneratedCodeBlock"
+                               Text="" FontFamily="Consolas" FontSize="12"
+                               TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                               Foreground="DarkGreen"/>
+
+                    <!-- Сохранение рецепта -->
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Файл:" VerticalAlignment="Center" Width="60"/>
+                        <TextBox x:Name="SaveFileNameBox"
+                                 PlaceholderText="имя файла (без .js)"
+                                 Width="200"/>
+                        <Button x:Name="SaveRecipeButton"
+                                Content="Сохранить рецепт"
+                                Click="SaveRecipeButton_Click"/>
+                    </StackPanel>
+                    <TextBlock x:Name="SaveStatusBlock"
+                               Text="" FontSize="12" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Список рецептов -->
+                <ScrollViewer Grid.Row="1">
+                    <ListView ItemsSource="{x:Bind ViewModel.Recipes, Mode=OneWay}"
+                              SelectionMode="None">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <TextBlock Text="{x:Bind Mode=OneWay}" />
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+
+        <!-- Панель консоли -->
+        <Grid Grid.Row="2" Margin="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="200"/>
+                <!-- Высота для вывода -->
+                <RowDefinition Height="Auto"/>
+                <!-- Для ввода -->
+            </Grid.RowDefinitions>
+
+            <!-- TextBox для вывода логов (только для чтения) -->
+            <ScrollViewer x:Name="ConsoleOutputScrollViewer" Grid.Row="0">
+                <TextBox x:Name="ConsoleOutputBox"
+                     IsReadOnly="True"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+            </ScrollViewer>
+
+            <!-- Grid для ввода команды и кнопки -->
+            <Grid Grid.Row="1" Margin="0,5,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="ConsoleInputBox"
+                         Grid.Column="0"
+                         PlaceholderText="Введите команду (да/нет/получить/test/gr/exit)..."
+                         KeyUp="ConsoleInputBox_KeyUp" />
+                <Button x:Name="ConsoleSendButton"
+                        Grid.Column="1"
+                        Content="Отправить"
+                        Margin="5,0,0,0"
+                        Click="ConsoleSendButton_Click" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
+
+<!-- <?xml version="1.0" encoding="utf-8"?>
+<Window
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        Левая панель: Список предметов 
+        <ScrollViewer Grid.Column="0" Margin="10">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}">
+                <ItemsRepeater.Layout>
+                    <UniformGridLayout MinItemWidth="100" MinItemHeight="100"/>
+                </ItemsRepeater.Layout>
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="local:MinecraftItemViewModel">
+                        <Border Margin="5" Padding="5" BorderBrush="Black" BorderThickness="1" Background="LightGray">
+                            <Image Source="{x:Bind Image}" Width="64" Height="64" Stretch="UniformToFill" />
+                            <ToolTipService.ToolTip>
+                                <StackPanel>
+                                    <TextBlock Text="{x:Bind LocalizedName}" FontWeight="Bold"/>
+                                    <TextBlock Text="{x:Bind ModName}"/>
+                                    <TextBlock Text="{x:Bind Type}"/>
+                                    <TextBlock Text="{x:Bind TagsDisplay}"/>
+                                </StackPanel>
+                            </ToolTipService.ToolTip>
+                        </Border>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        Правая панель: Список рецептов 
+        <ScrollViewer Grid.Column="1" Margin="10">
+            <ListView ItemsSource="{x:Bind ViewModel.Recipes, Mode=OneWay}"
+                      SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{x:Bind Mode=OneWay}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </ScrollViewer>
+    </Grid>
+</Window> -->
