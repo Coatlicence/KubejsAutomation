@@ -34,12 +34,12 @@ namespace KubeAutomation.GenerationStrategies.Parsing
         {
             var registry = new ExtractorRegistry();
 
-            // Порядок регистрации = порядок проверки (первый совпавший выигрывает)
-            // Специфичные экстракторы — первыми, общий (Raw) — последним
-            registry.Register(new RemovalExtractor());    // event.remove
-            registry.Register(new CustomExtractor());     // event.custom
-            registry.Register(new CreateExtractor());     // рецепты Create
-            registry.Register(new RawCodeExtractor());    // любой другой event.что-то
+            registry.Register(new RemovalExtractor());          // event.remove
+            registry.Register(new CustomExtractor());           // event.custom
+            registry.Register(new CreateExtractor());           // рецепты Create
+            registry.Register(new MinecraftStandardExtractor()); // event.smelting/blasting/smoking/stonecutting
+            registry.Register(new ShapedExtractor());           // event.shaped
+            registry.Register(new RawCodeExtractor());          // что угодно
 
             return registry;
         }

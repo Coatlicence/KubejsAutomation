@@ -155,10 +155,12 @@ namespace KubeAutomation.GenerationStrategies.Parsing
                 var config = extractor.Extract(target);
                 if (config != null)
                 {
+                    // Устанавливаем позицию из исходного узла (statement, а не expression)
+                    config.SourceStart = node.Range.Start;
+                    config.SourceEnd = node.Range.End;
                     configs.Add(config);
                 }
             }
-            // Если никто не взял — узел игнорируется (или можно добавить RawCode для всего подряд)
         }
     }
 }
