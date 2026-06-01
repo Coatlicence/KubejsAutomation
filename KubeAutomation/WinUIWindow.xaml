@@ -6,37 +6,26 @@
     Title="KubeJS Automation - WinUI 3">
 
     <Grid>
+        <Grid.Resources>
+            <local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <local:NullToVisibilityConverter x:Key="NullToVisibility"/>
+        </Grid.Resources>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Для поиска -->
             <RowDefinition Height="*"/>
-            <!-- Для основного контента -->
-            <RowDefinition Height="Auto"/>
-            <!-- Для консоли -->
         </Grid.RowDefinitions>
 
-        <!-- Панель поиска (оставляем как есть) -->
+        <!-- Панель поиска -->
         <Grid Grid.Row="0" Margin="10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="SearchBox" Grid.Column="0" PlaceholderText="Search items..." KeyUp="SearchBox_KeyUp" TextChanged="SearchBox_TextChanged"/>
+            <TextBox x:Name="SearchBox" Grid.Column="0" PlaceholderText="Поиск предметов..." TextChanged="SearchBox_TextChanged"/>
             <Button Grid.Column="1" Content="Clear" Click="ClearSearch_Click" Margin="5,0,0,0"/>
-
-            <ListView x:Name="AutocompleteListView"
-                      Grid.Row="0" Grid.Column="0"
-                      Visibility="Collapsed"
-                      Height="Auto"
-                      MaxHeight="200"
-                      ScrollViewer.VerticalScrollBarVisibility="Auto"
-                      SelectionChanged="AutocompleteListView_SelectionChanged"
-                      KeyUp="AutocompleteListView_KeyUp"
-                      LostFocus="AutocompleteListView_LostFocus"
-                      Margin="0,30,0,0" />
         </Grid>
 
-        <!-- Основной контент (оставляем как есть) -->
+        <!-- Основной контент -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
@@ -47,11 +36,11 @@
             <ScrollViewer Grid.Column="0" Margin="10">
                 <ItemsRepeater x:Name="ItemsRepeater" ItemsSource="{x:Bind FilteredItems, Mode=OneWay}">
                     <ItemsRepeater.Layout>
-                        <UniformGridLayout MinItemWidth="100" MinItemHeight="100" />
+                        <UniformGridLayout MinItemWidth="80" MinItemHeight="80" />
                     </ItemsRepeater.Layout>
                     <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="local:MinecraftItemViewModel">
-                            <Border Margin="5" Padding="5" BorderBrush="Black" BorderThickness="1" Background="LightGray"
+                            <Border Margin="5" Padding="1" BorderBrush="Black" BorderThickness="1" Background="LightGray"
                                     Tag="{x:Bind}"
                                     PointerPressed="ItemBorder_PointerPressed">
                                 <Image Source="{x:Bind Image, Mode=OneWay}" Width="64" Height="64" Stretch="Uniform" />
@@ -68,214 +57,525 @@
                 </ItemsRepeater>
             </ScrollViewer>
 
-            <!-- Правая панель: форма рецепта + список рецептов -->
-            <Grid Grid.Column="1" Margin="10">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+            <!-- Правая панель: вкладки -->
+            <TabView x:Name="MainTabView" Grid.Column="1" Margin="10"
+                     IsAddTabButtonVisible="False"
+                     TabWidthMode="Equal">
 
-                <!-- Форма MinecraftStandardRecipe -->
-                <StackPanel Grid.Row="0" Spacing="8" Margin="0,0,0,10">
-                    <TextBlock Text="Стандартный рецепт Minecraft" FontWeight="SemiBold" FontSize="14"/>
+                <!-- Вкладка: Создать -->
+                <TabViewItem Header="Создать">
+                    <ScrollViewer Padding="8">
+                        <StackPanel Spacing="8">
 
-                    <!-- Выбор типа рецепта -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Тип:" VerticalAlignment="Center" Width="60"/>
-                        <ComboBox x:Name="BlockComboBox"
-                                  ItemsSource="{x:Bind ViewModel.RecipeBlocks, Mode=OneWay}"
-                                  Width="160"
-                                  SelectionChanged="BlockComboBox_SelectionChanged"/>
-                    </StackPanel>
-
-                    <!-- Входной предмет (Amount всегда 1) -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Вход:" VerticalAlignment="Center" Width="60"/>
-                        <Border x:Name="InputSlot"
-                                Width="64" Height="64"
-                                BorderBrush="Gray" BorderThickness="2"
-                                Background="LightGray"
-                                CornerRadius="4"
-                                PointerPressed="InputSlot_PointerPressed"
-                                ToolTipService.ToolTip="Нажмите, затем кликните предмет в сетке">
-                            <Grid>
-                                <Image x:Name="InputItemImage" Width="56" Height="56" Stretch="Uniform"/>
-                                <TextBlock x:Name="InputItemLabel"
-                                           Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontSize="20" Foreground="DarkGray"/>
-                            </Grid>
-                        </Border>
-                        <TextBlock Text="{x:Bind ViewModel.InputItemId, Mode=OneWay}"
-                                   VerticalAlignment="Center" MaxWidth="200" TextWrapping="Wrap"/>
-                    </StackPanel>
-
-                    <!-- Выходной предмет + количество -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Выход:" VerticalAlignment="Center" Width="60"/>
-                        <Border x:Name="OutputSlot"
-                                Width="64" Height="64"
-                                BorderBrush="Gray" BorderThickness="2"
-                                Background="LightGray"
-                                CornerRadius="4"
-                                PointerPressed="OutputSlot_PointerPressed"
-                                ToolTipService.ToolTip="Нажмите, затем кликните предмет в сетке">
-                            <Grid>
-                                <Image x:Name="OutputItemImage" Width="56" Height="56" Stretch="Uniform"/>
-                                <TextBlock x:Name="OutputItemLabel"
-                                           Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                           FontSize="20" Foreground="DarkGray"/>
-                            </Grid>
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Spacing="4">
-                            <TextBlock Text="{x:Bind ViewModel.OutputItemId, Mode=OneWay}"
-                                       MaxWidth="160" TextWrapping="Wrap"/>
-                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="Кол-во:" VerticalAlignment="Center"/>
-                                <NumberBox x:Name="OutputAmountBox"
-                                           Minimum="1" Maximum="64" SmallChange="1"
-                                           Value="{x:Bind ViewModel.OutputAmount, Mode=TwoWay}"
-                                           Width="Auto"
-                                           SpinButtonPlacementMode="Inline"/>
+                            <!-- Выбор типа рецепта -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Тип:" VerticalAlignment="Center" Width="60"/>
+                                <ComboBox x:Name="BlockComboBox"
+                                          ItemsSource="{x:Bind ViewModel.RecipeBlocks, Mode=OneWay}"
+                                          Width="200"
+                                          SelectionChanged="BlockComboBox_SelectionChanged"/>
                             </StackPanel>
+
+                            <!-- ===== Единая секция рецепта ===== -->
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Параметры рецепта" FontWeight="SemiBold" FontSize="13"
+                                           Foreground="Gray"/>
+
+                                <!-- Входы -->
+                                <TextBlock Text="Входы:" FontWeight="SemiBold"/>
+                                <ItemsRepeater x:Name="InputSlotsRepeater"
+                                               Visibility="{x:Bind ViewModel.ShowInputSlots, Mode=OneWay}"
+                                               ItemsSource="{x:Bind ViewModel.InputSlots, Mode=OneWay}">
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="local:RecipeSlotViewModel">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                                <Border Width="48" Height="48"
+                                                        BorderBrush="Gray" BorderThickness="2"
+                                                        Background="LightGray" CornerRadius="4"
+                                                        Tag="{x:Bind}"
+                                                        PointerPressed="Slot_PointerPressed"
+                                                        RightTapped="Slot_RightTapped"
+                                                        ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                                    <Grid>
+                                                        <Image Source="{x:Bind Item.Image, Mode=OneWay}"
+                                                               Width="40" Height="40" Stretch="Uniform"
+                                                               Visibility="{x:Bind ImageVisibility, Mode=OneWay}"/>
+                                                        <TextBlock Text="?" HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   FontSize="16" Foreground="DarkGray"
+                                                                   Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}"/>
+                                                    </Grid>
+                                                </Border>
+                                                <TextBlock Text="{x:Bind ItemId, Mode=OneWay}"
+                                                           VerticalAlignment="Center" MaxWidth="180"
+                                                           TextWrapping="Wrap" FontSize="12"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                            Visibility="{x:Bind ViewModel.ShowInputButtons, Mode=OneWay}">
+                                    <Button Content="+ Вход" Click="AddInput_Click"
+                                            IsEnabled="{x:Bind ViewModel.CanAddInput, Mode=OneWay}"/>
+                                    <Button Content="− Вход" Click="RemoveInput_Click"
+                                            IsEnabled="{x:Bind ViewModel.CanRemoveInput, Mode=OneWay}"/>
+                                </StackPanel>
+
+                                <!-- Верстак 3×3 -->
+                                <Grid Visibility="{x:Bind ViewModel.ShowWorkbenchGrid, Mode=OneWay}"
+                                      HorizontalAlignment="Left">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Row 0 -->
+                                    <Border Grid.Row="0" Grid.Column="0" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[0]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[0].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[0].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[0].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="0" Grid.Column="1" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[1]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[1].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[1].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[1].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="0" Grid.Column="2" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[2]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[2].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[2].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[2].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Row 1 -->
+                                    <Border Grid.Row="1" Grid.Column="0" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[3]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[3].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[3].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[3].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="1" Grid.Column="1" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[4]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[4].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[4].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[4].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="1" Grid.Column="2" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[5]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[5].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[5].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[5].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Row 2 -->
+                                    <Border Grid.Row="2" Grid.Column="0" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[6]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[6].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[6].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[6].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="2" Grid.Column="1" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[7]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[7].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[7].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[7].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                    <Border Grid.Row="2" Grid.Column="2" Width="48" Height="48" Margin="2"
+                                            BorderBrush="Gray" BorderThickness="2" Background="LightGray" CornerRadius="4"
+                                            Tag="{x:Bind ViewModel.WorkbenchSlots[8]}"
+                                            PointerPressed="Slot_PointerPressed"
+                                            RightTapped="Slot_RightTapped"
+                                            ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                        <Grid>
+                                            <Image Source="{x:Bind ViewModel.WorkbenchSlots[8].Item.Image, Mode=OneWay}" Width="40" Height="40" Stretch="Uniform"
+                                                   Visibility="{x:Bind ViewModel.WorkbenchSlots[8].ImageVisibility, Mode=OneWay}"/>
+                                            <TextBlock Text="?" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       FontSize="16" Foreground="DarkGray"
+                                                       Visibility="{x:Bind ViewModel.WorkbenchSlots[8].PlaceholderVisibility, Mode=OneWay}"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Выходы -->
+                                <TextBlock Text="Выходы:" FontWeight="SemiBold"/>
+                                <ItemsRepeater x:Name="OutputSlotsRepeater"
+                                               ItemsSource="{x:Bind ViewModel.OutputSlots, Mode=OneWay}">
+                                    <ItemsRepeater.ItemTemplate>
+                                        <DataTemplate x:DataType="local:RecipeSlotViewModel">
+                                            <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,2">
+                                                <Border Width="48" Height="48"
+                                                        BorderBrush="Gray" BorderThickness="2"
+                                                        Background="LightGray" CornerRadius="4"
+                                                        Tag="{x:Bind}"
+                                                        PointerPressed="Slot_PointerPressed"
+                                                        RightTapped="Slot_RightTapped"
+                                                        ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                                    <Grid>
+                                                        <Image Source="{x:Bind Item.Image, Mode=OneWay}"
+                                                               Width="40" Height="40" Stretch="Uniform"
+                                                               Visibility="{x:Bind ImageVisibility, Mode=OneWay}"/>
+                                                        <TextBlock Text="?" HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"
+                                                                   FontSize="16" Foreground="DarkGray"
+                                                                   Visibility="{x:Bind PlaceholderVisibility, Mode=OneWay}"/>
+                                                    </Grid>
+                                                </Border>
+                                                <TextBlock Text="{x:Bind ItemId, Mode=OneWay}"
+                                                           VerticalAlignment="Center" MaxWidth="120"
+                                                           TextWrapping="Wrap" FontSize="12"/>
+                                                <!-- Количество -->
+                                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                                            Visibility="{x:Bind AmountVisibility}"
+                                                            VerticalAlignment="Center">
+                                                    <TextBlock Text="Кол-во:" VerticalAlignment="Center" FontSize="12"/>
+                                                    <NumberBox Value="{x:Bind Amount, Mode=TwoWay}"
+                                                               Minimum="1" Maximum="64" SmallChange="1"
+                                                               Width="Auto" SpinButtonPlacementMode="Inline"
+                                                               FontSize="12"/>
+                                                </StackPanel>
+                                                <!-- Шанс выпадения -->
+                                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                                            Visibility="{x:Bind ChanceVisibility}"
+                                                            VerticalAlignment="Center">
+                                                    <TextBlock Text="Шанс:" VerticalAlignment="Center" FontSize="12"/>
+                                                    <NumberBox Value="{x:Bind Chance, Mode=TwoWay}"
+                                                               Minimum="0.01" Maximum="1.0" SmallChange="0.05"
+                                                               Width="90" SpinButtonPlacementMode="Inline"
+                                                               FontSize="12"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsRepeater.ItemTemplate>
+                                </ItemsRepeater>
+                                <StackPanel Orientation="Horizontal" Spacing="4"
+                                            Visibility="{x:Bind ViewModel.ShowOutputButtons, Mode=OneWay}">
+                                    <Button Content="+ Выход" Click="AddOutput_Click"
+                                            IsEnabled="{x:Bind ViewModel.CanAddOutput, Mode=OneWay}"/>
+                                    <Button Content="− Выход" Click="RemoveOutput_Click"
+                                            IsEnabled="{x:Bind ViewModel.CanRemoveOutput, Mode=OneWay}"/>
+                                </StackPanel>
+
+                                <!-- Модификаторы -->
+                                <StackPanel Visibility="{x:Bind ViewModel.ShowModifierHeated, Mode=OneWay}"
+                                            Spacing="4">
+                                    <TextBlock Text="Нагрев:" FontWeight="SemiBold"/>
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <RadioButton x:Name="HeatNoneRadio" Content="Нет"
+                                                     GroupName="HeatGroup" IsChecked="True"
+                                                     Checked="HeatRadio_Checked" Tag="none"/>
+                                        <RadioButton Content="Heated"
+                                                     GroupName="HeatGroup"
+                                                     Checked="HeatRadio_Checked" Tag="heated"/>
+                                        <RadioButton Content="Superheated"
+                                                     GroupName="HeatGroup"
+                                                     Checked="HeatRadio_Checked" Tag="superheated"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.ShowModifierProcessingTime, Mode=OneWay}"
+                                            Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Время (тики):" VerticalAlignment="Center"/>
+                                    <NumberBox Value="{x:Bind ViewModel.ProcessingTime, Mode=TwoWay}"
+                                               Minimum="1" Maximum="10000" SmallChange="10"
+                                               Width="120" SpinButtonPlacementMode="Inline"/>
+                                </StackPanel>
+
+                                <CheckBox Visibility="{x:Bind ViewModel.ShowModifierKeepHeldItem, Mode=OneWay}"
+                                          Content="keepHeldItem"
+                                          IsChecked="{x:Bind ViewModel.KeepHeldItem, Mode=TwoWay}"/>
+
+                                <StackPanel Visibility="{x:Bind ViewModel.ShowModifierExperience, Mode=OneWay}"
+                                            Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Опыт:" VerticalAlignment="Center"/>
+                                    <NumberBox Value="{x:Bind ViewModel.Experience, Mode=TwoWay}"
+                                               Minimum="0" Maximum="100" SmallChange="0.1"
+                                               Width="Auto" SpinButtonPlacementMode="Inline"/>
+                                </StackPanel>
+                            </StackPanel>
+
+                            <!-- Имя файла -->
+                            <StackPanel Orientation="Horizontal" Spacing="8"
+                                        Visibility="{x:Bind ViewModel.FileNameVisibility, Mode=OneWay}">
+                                <TextBlock Text="Файл:" VerticalAlignment="Center" Width="60"/>
+                                <TextBox x:Name="CreateFileNameBox"
+                                         PlaceholderText="имя файла (без .js)"
+                                         Width="200"/>
+                            </StackPanel>
+
+                            <TextBlock x:Name="SaveStatusBlock"
+                                       Text="" FontSize="12" TextWrapping="Wrap"/>
+
+                            <Button x:Name="GenerateRecipeButton"
+                                    Content="{x:Bind ViewModel.CreateButtonLabel, Mode=OneWay}"
+                                    Click="GenerateRecipeButton_Click"
+                                    HorizontalAlignment="Left"/>
+                            <Button x:Name="CancelEditButton"
+                                    Content="Отмена"
+                                    Click="CancelEditButton_Click"
+                                    HorizontalAlignment="Left"
+                                    Visibility="{x:Bind ViewModel.CancelEditVisibility, Mode=OneWay}"/>
+
+                            <TextBlock x:Name="GeneratedCodeBlock"
+                                       Text="" FontFamily="Consolas" FontSize="12"
+                                       TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                                       Foreground="DarkGreen"/>
                         </StackPanel>
-                    </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
 
-                    <!-- Опыт (только для smoking) -->
-                    <StackPanel x:Name="ExperiencePanel"
-                                Orientation="Horizontal" Spacing="8"
-                                Visibility="Collapsed">
-                        <TextBlock Text="Опыт:" VerticalAlignment="Center" Width="60"/>
-                        <NumberBox x:Name="ExperienceBox"
-                                   Minimum="0" Maximum="100" SmallChange="0.1"
-                                   Value="{x:Bind ViewModel.Experience, Mode=TwoWay}"
-                                   Width="120"
-                                   SpinButtonPlacementMode="Inline"/>
-                    </StackPanel>
+                <!-- Вкладка: Удалить -->
+                <TabViewItem Header="Удалить">
+                    <ScrollViewer Padding="8">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Удаление рецептов" FontWeight="SemiBold" FontSize="14"/>
+                            <TextBlock Text="Заполните хотя бы одно поле фильтра (AND внутри фильтра)."
+                                       Foreground="Gray" FontSize="12" TextWrapping="Wrap"/>
 
-                    <!-- Статус выбора слота -->
-                    <TextBlock x:Name="SlotSelectionStatus"
-                               Text="" Foreground="DodgerBlue" FontStyle="Italic"/>
+                            <!-- Output: ячейка выбора предмета -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Output:" VerticalAlignment="Center" Width="80"/>
+                                <Border Width="48" Height="48"
+                                        BorderBrush="Gray" BorderThickness="2"
+                                        Background="LightGray" CornerRadius="4"
+                                        Tag="{x:Bind ViewModel.RemovalOutputSlot}"
+                                        PointerPressed="Slot_PointerPressed"
+                                        RightTapped="Slot_RightTapped"
+                                        ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                    <Grid>
+                                        <Image Source="{x:Bind ViewModel.RemovalOutputSlot.Item.Image, Mode=OneWay}"
+                                               Width="40" Height="40" Stretch="Uniform"
+                                               Visibility="{x:Bind ViewModel.RemovalOutputSlot.ImageVisibility, Mode=OneWay}"/>
+                                        <TextBlock Text="?" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="16" Foreground="DarkGray"
+                                                   Visibility="{x:Bind ViewModel.RemovalOutputSlot.PlaceholderVisibility, Mode=OneWay}"/>
+                                    </Grid>
+                                </Border>
+                                <TextBlock Text="{x:Bind ViewModel.RemovalOutputSlot.ItemId, Mode=OneWay}"
+                                           VerticalAlignment="Center" MaxWidth="180"
+                                           TextWrapping="Wrap" FontSize="12"/>
+                            </StackPanel>
 
-                    <!-- Кнопка генерации -->
-                    <Button x:Name="GenerateRecipeButton"
-                            Content="Сгенерировать рецепт"
-                            Click="GenerateRecipeButton_Click"
-                            HorizontalAlignment="Left"/>
+                            <!-- Input: ячейка выбора предмета -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Input:" VerticalAlignment="Center" Width="80"/>
+                                <Border Width="48" Height="48"
+                                        BorderBrush="Gray" BorderThickness="2"
+                                        Background="LightGray" CornerRadius="4"
+                                        Tag="{x:Bind ViewModel.RemovalInputSlot}"
+                                        PointerPressed="Slot_PointerPressed"
+                                        RightTapped="Slot_RightTapped"
+                                        ToolTipService.ToolTip="ЛКМ — выбрать, ПКМ — очистить">
+                                    <Grid>
+                                        <Image Source="{x:Bind ViewModel.RemovalInputSlot.Item.Image, Mode=OneWay}"
+                                               Width="40" Height="40" Stretch="Uniform"
+                                               Visibility="{x:Bind ViewModel.RemovalInputSlot.ImageVisibility, Mode=OneWay}"/>
+                                        <TextBlock Text="?" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   FontSize="16" Foreground="DarkGray"
+                                                   Visibility="{x:Bind ViewModel.RemovalInputSlot.PlaceholderVisibility, Mode=OneWay}"/>
+                                    </Grid>
+                                </Border>
+                                <TextBlock Text="{x:Bind ViewModel.RemovalInputSlot.ItemId, Mode=OneWay}"
+                                           VerticalAlignment="Center" MaxWidth="180"
+                                           TextWrapping="Wrap" FontSize="12"/>
+                            </StackPanel>
 
-                    <TextBlock x:Name="GeneratedCodeBlock"
-                               Text="" FontFamily="Consolas" FontSize="12"
-                               TextWrapping="Wrap" IsTextSelectionEnabled="True"
-                               Foreground="DarkGreen"/>
+                            <!-- Type: выпадающий список -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Type:" VerticalAlignment="Center" Width="80"/>
+                                <ComboBox x:Name="RemoveTypeCombo"
+                                          ItemsSource="{x:Bind ViewModel.RemoveTypeOptions, Mode=OneWay}"
+                                          PlaceholderText="не выбран"
+                                          Width="220"/>
+                            </StackPanel>
 
-                    <!-- Сохранение рецепта -->
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="Файл:" VerticalAlignment="Center" Width="60"/>
-                        <TextBox x:Name="SaveFileNameBox"
-                                 PlaceholderText="имя файла (без .js)"
-                                 Width="200"/>
-                        <Button x:Name="SaveRecipeButton"
-                                Content="Сохранить рецепт"
-                                Click="SaveRecipeButton_Click"/>
-                    </StackPanel>
-                    <TextBlock x:Name="SaveStatusBlock"
-                               Text="" FontSize="12" TextWrapping="Wrap"/>
-                </StackPanel>
+                            <!-- Mod: выпадающий список -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Mod:" VerticalAlignment="Center" Width="80"/>
+                                <ComboBox x:Name="RemoveModCombo"
+                                          ItemsSource="{x:Bind ViewModel.RemoveModOptions, Mode=OneWay}"
+                                          PlaceholderText="не выбран"
+                                          Width="220"/>
+                            </StackPanel>
 
-                <!-- Список рецептов -->
-                <ScrollViewer Grid.Row="1">
-                    <ListView ItemsSource="{x:Bind ViewModel.Recipes, Mode=OneWay}"
-                              SelectionMode="None">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="x:String">
-                                <TextBlock Text="{x:Bind Mode=OneWay}" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </ScrollViewer>
-            </Grid>
+                            <!-- Id: текстовое поле -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Id:" VerticalAlignment="Center" Width="80"/>
+                                <TextBox x:Name="RemoveIdBox" PlaceholderText="minecraft:glowstone" Width="220"/>
+                            </StackPanel>
+
+                            <!-- Имя файла -->
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="Файл:" VerticalAlignment="Center" Width="80"/>
+                                <TextBox x:Name="RemoveFileNameBox"
+                                         PlaceholderText="имя файла (без .js)"
+                                         Width="220"/>
+                            </StackPanel>
+
+                            <Button x:Name="RemoveRecipeButton"
+                                    Content="Удалить рецепт"
+                                    Click="RemoveRecipeButton_Click"
+                                    HorizontalAlignment="Left"/>
+
+                            <TextBlock x:Name="RemoveStatusBlock"
+                                       Text="" FontSize="12" TextWrapping="Wrap"/>
+
+                            <TextBlock x:Name="RemoveCodeBlock"
+                                       Text="" FontFamily="Consolas" FontSize="12"
+                                       TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                                       Foreground="DarkGreen"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabViewItem>
+
+                <!-- Вкладка: Файл -->
+                <TabViewItem Header="Файл">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Шапка: выбор файла -->
+                        <StackPanel Grid.Row="0" Spacing="8" Margin="8">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBox x:Name="FileTabPathBox"
+                                         PlaceholderText="Путь к .js файлу"
+                                         Width="300"
+                                         Text="{x:Bind ViewModel.RecipeFile.FilePath, Mode=TwoWay}"/>
+                                <Button Content="Обзор..." Click="FileTab_Browse_Click"/>
+                                <Button Content="Открыть" Click="FileTab_OpenFile_Click"/>
+                                <Button Content="Обновить" Click="FileTab_Reload_Click"/>
+                            </StackPanel>
+                            <TextBlock Text="{x:Bind ViewModel.RecipeFile.StatusText, Mode=OneWay}"
+                                       FontSize="12" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Список рецептов -->
+                        <ListView Grid.Row="1"
+                                  ItemsSource="{x:Bind ViewModel.RecipeFile.Entries, Mode=OneWay}"
+                                  SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="local:RecipeEntryViewModel">
+                                    <Grid Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Button Grid.Column="0"
+                                                Content="{x:Bind DisplayName}"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Left"
+                                                FontFamily="Consolas" FontSize="12"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Tag="{x:Bind}"
+                                                Click="FileTab_EditEntry_Click"
+                                                ToolTipService.ToolTip="Редактировать рецепт"/>
+                                        <Button Grid.Column="1"
+                                                Content="[&lt;+]"
+                                                Margin="8,0,0,0"
+                                                IsEnabled="{x:Bind CanInsert}"
+                                                Tag="{x:Bind}"
+                                                Click="FileTab_InsertBefore_Click"
+                                                ToolTipService.ToolTip="Вставить рецепт до"/>
+                                        <Button Grid.Column="2"
+                                                Content="[+&gt;]"
+                                                Margin="4,0,0,0"
+                                                IsEnabled="{x:Bind CanInsert}"
+                                                Tag="{x:Bind}"
+                                                Click="FileTab_InsertAfter_Click"
+                                                ToolTipService.ToolTip="Вставить рецепт после"/>
+                                        <Button Grid.Column="3"
+                                                Content="Удалить"
+                                                Margin="4,0,0,0"
+                                                IsEnabled="{x:Bind CanDelete}"
+                                                Tag="{x:Bind}"
+                                                Click="FileTab_DeleteEntry_Click"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </Grid>
+                </TabViewItem>
+
+            </TabView>
         </Grid>
 
-        <!-- Панель консоли -->
-        <Grid Grid.Row="2" Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="200"/>
-                <!-- Высота для вывода -->
-                <RowDefinition Height="Auto"/>
-                <!-- Для ввода -->
-            </Grid.RowDefinitions>
-
-            <!-- TextBox для вывода логов (только для чтения) -->
-            <ScrollViewer x:Name="ConsoleOutputScrollViewer" Grid.Row="0">
-                <TextBox x:Name="ConsoleOutputBox"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     ScrollViewer.VerticalScrollBarVisibility="Disabled" />
-            </ScrollViewer>
-
-            <!-- Grid для ввода команды и кнопки -->
-            <Grid Grid.Row="1" Margin="0,5,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox x:Name="ConsoleInputBox"
-                         Grid.Column="0"
-                         PlaceholderText="Введите команду (да/нет/получить/test/gr/exit)..."
-                         KeyUp="ConsoleInputBox_KeyUp" />
-                <Button x:Name="ConsoleSendButton"
-                        Grid.Column="1"
-                        Content="Отправить"
-                        Margin="5,0,0,0"
-                        Click="ConsoleSendButton_Click" />
-            </Grid>
-        </Grid>
     </Grid>
 </Window>
-
-<!-- <?xml version="1.0" encoding="utf-8"?>
-<Window
-
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-
-        Левая панель: Список предметов 
-        <ScrollViewer Grid.Column="0" Margin="10">
-            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}">
-                <ItemsRepeater.Layout>
-                    <UniformGridLayout MinItemWidth="100" MinItemHeight="100"/>
-                </ItemsRepeater.Layout>
-                <ItemsRepeater.ItemTemplate>
-                    <DataTemplate x:DataType="local:MinecraftItemViewModel">
-                        <Border Margin="5" Padding="5" BorderBrush="Black" BorderThickness="1" Background="LightGray">
-                            <Image Source="{x:Bind Image}" Width="64" Height="64" Stretch="UniformToFill" />
-                            <ToolTipService.ToolTip>
-                                <StackPanel>
-                                    <TextBlock Text="{x:Bind LocalizedName}" FontWeight="Bold"/>
-                                    <TextBlock Text="{x:Bind ModName}"/>
-                                    <TextBlock Text="{x:Bind Type}"/>
-                                    <TextBlock Text="{x:Bind TagsDisplay}"/>
-                                </StackPanel>
-                            </ToolTipService.ToolTip>
-                        </Border>
-                    </DataTemplate>
-                </ItemsRepeater.ItemTemplate>
-            </ItemsRepeater>
-        </ScrollViewer>
-
-        Правая панель: Список рецептов 
-        <ScrollViewer Grid.Column="1" Margin="10">
-            <ListView ItemsSource="{x:Bind ViewModel.Recipes, Mode=OneWay}"
-                      SelectionMode="None">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                        <TextBlock Text="{x:Bind Mode=OneWay}" />
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-        </ScrollViewer>
-    </Grid>
-</Window> -->
