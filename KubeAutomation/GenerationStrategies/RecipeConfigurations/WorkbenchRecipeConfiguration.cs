@@ -154,6 +154,9 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
             return "{\n" + string.Join(",\n", lines) + "\n}";
         }
 
+        public Dictionary<char, string> ToKeyMapDict() =>
+            KeyMap.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
         /// <summary>
         /// Генерирует только массив паттерна (чистый JS-массив)
         /// </summary>
@@ -173,46 +176,43 @@ namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
 
 
     /// <summary>
-    /// Хранит рецепт создания предмета на верстаке (Сетка 3*3) с помощью 3 строк с 3 символами, 
-    ///     прямо как в оригинальном KubeJS.
-    /// Обеспечивает совместимость с KubeJS
+    /// Хранит паттерн рецепта верстака: от 1 до 3 строк, каждая от 1 до 3 символов.
+    /// Совместимо с KubeJS (принимает неполные паттерны как 2x2, 1x3 и т.д.)
     /// </summary>
-    public readonly struct WorkbenchCraftGrid(string row1, string row2, string row3)
+    public readonly struct WorkbenchCraftGrid
     {
-        public string Row1 { get; } = Validate(row1);
-        public string Row2 { get; } = Validate(row2);
-        public string Row3 { get; } = Validate(row3);
+        private readonly string[] _rows;
 
-        private static string Validate(string value)
+        public string Row1 => _rows.Length > 0 ? _rows[0] : "   ";
+        public string Row2 => _rows.Length > 1 ? _rows[1] : "   ";
+        public string Row3 => _rows.Length > 2 ? _rows[2] : "   ";
+
+        public WorkbenchCraftGrid(string row1, string row2, string row3)
+            : this([row1, row2, row3]) { }
+
+        public WorkbenchCraftGrid(string[] rows)
         {
-            ArgumentNullException.ThrowIfNull(value);
+            if (rows == null || rows.Length == 0 || rows.Length > 3)
+                throw new ArgumentException("Pattern must have 1 to 3 rows.", nameof(rows));
 
-            if (value.Length != 3)
-                throw new ArgumentException($"String must be exactly 3 characters: '{value}'", nameof(value));
-            return value;
+            foreach (var r in rows)
+            {
+                ArgumentNullException.ThrowIfNull(r);
+                if (r.Length == 0 || r.Length > 3)
+                    throw new ArgumentException($"Each row must be 1 to 3 characters: '{r}'", nameof(rows));
+            }
+
+            _rows = rows;
         }
 
-        /// <summary>
-        /// Основной метод форматирования. 
-        /// Используется только при создании рецептов
-        /// </summary>
-        /// <returns>Готовый JS-код, содержащий только паттерн</returns>
         public override string ToString()
         {
-            // Базовый отступ контента: 4 пробела (внутри массива)
             const string indent = "    ";
-
-            return
-                $"[\n" +
-                $"{indent}\"{Row1}\",\n" +
-                $"{indent}\"{Row2}\",\n" +
-                $"{indent}\"{Row3}\"\n" +
-                $"]";
+            var lines = string.Join(",\n", _rows.Select(r => $"{indent}\"{r}\""));
+            return $"[\n{lines}\n]";
         }
 
-        public string[] ToArray() => [Row1, Row2, Row3];
-    
-        
+        public string[] ToArray() => _rows.ToArray();
     }
 
 

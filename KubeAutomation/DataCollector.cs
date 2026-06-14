@@ -10,7 +10,7 @@ namespace KubeScriptAutomation.Collectos
 {
     public abstract class DataCollector
     {
-        public abstract GregTechRecipeConfiguration Collect();
+        // public abstract GregTechRecipeConfiguration Collect();
 
         // Выводит сообщение в консоль и требует текстовый ввод
         protected string Prompt(string message)
