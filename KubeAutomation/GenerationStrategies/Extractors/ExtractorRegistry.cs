@@ -39,7 +39,7 @@ namespace KubeAutomation.GenerationStrategies.Parsing
             registry.Register(new RemovalExtractor());    // event.remove
             registry.Register(new CustomExtractor());     // event.custom
             registry.Register(new CreateExtractor());     // рецепты Create
-            registry.Register(new RawCodeExtractor());    // любой другой event.что-то
+            registry.Register(new RawCodeExtractor());    // циклы, переменные, лямбды, неподдирживаемый event
 
             return registry;
         }

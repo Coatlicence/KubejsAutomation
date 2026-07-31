@@ -1,5 +1,5 @@
 ﻿// Tests/Cases/RoundtripTests.cs
-using KubeAutomation.GenerationStrategies.Generators;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode;
 using KubeAutomation.GenerationStrategies.Templates;
 using System.Diagnostics;
 using System.Text.Json;

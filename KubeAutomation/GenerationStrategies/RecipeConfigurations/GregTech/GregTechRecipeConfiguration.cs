@@ -1,11 +1,11 @@
-﻿using KubeScriptAutomation;
+﻿using KubeAutomation.Instruments;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.GregTech
 {
     public class GregTechRecipeConfiguration : BaseRecipeConfiguration
     {

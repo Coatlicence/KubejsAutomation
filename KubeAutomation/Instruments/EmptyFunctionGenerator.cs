@@ -1,11 +1,7 @@
-﻿using KubeAutomation.GenerationStrategies.RecipeConfigurations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using KubeAutomation.Instruments;
 
-namespace KubeAutomation.GenerationStrategies.Generators
+
+namespace KubeAutomation.Instruments
 {
     public static class EmptyFunctionGenerator
     {

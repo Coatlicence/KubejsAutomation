@@ -1,12 +1,12 @@
-﻿using System;
+﻿using KubeAutomation.Instruments;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
-using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
-namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.MinecraftVanilla
 {
     /// <summary>
-    /// Типы стандартных рецептов Minecraft (печка, дробитель, коптильня, камнерез)
+    /// Типы стандартных рецептов Minecraft (печка, коптильня, камнерез)
     /// </summary>
     public enum MinecraftRecipeType
     {

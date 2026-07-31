@@ -1,7 +1,6 @@
 ﻿using Esprima.Ast;
-using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
-namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode
 {
     /// <summary>
     /// Конфигурация для неизвестных вызовов, которые не распознаны другими экстракторами.

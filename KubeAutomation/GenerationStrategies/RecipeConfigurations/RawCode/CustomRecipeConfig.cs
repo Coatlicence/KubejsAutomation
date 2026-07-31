@@ -3,7 +3,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
 
-namespace KubeAutomation.GenerationStrategies.Generators
+namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode
 {
     public enum JsonType
     {

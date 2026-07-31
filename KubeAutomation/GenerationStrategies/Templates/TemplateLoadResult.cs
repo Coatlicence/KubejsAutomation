@@ -1,4 +1,4 @@
-﻿using KubeAutomation.GenerationStrategies.Generators;
+﻿using KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode;
 using KubeAutomation.GenerationStrategies.Templates;
 
 /// <summary>

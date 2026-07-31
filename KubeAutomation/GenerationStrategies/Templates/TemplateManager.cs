@@ -1,4 +1,4 @@
-﻿using KubeAutomation.GenerationStrategies.Generators;
+﻿using KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode;
 using KubeAutomation.Tests;
 using Microsoft.VisualBasic.FileIO;
 using System.Text.Json;

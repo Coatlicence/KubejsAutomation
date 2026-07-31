@@ -1,4 +1,4 @@
-﻿namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+﻿namespace KubeAutomation.Instruments
 {
     /// <summary>
     /// Компонент предмета для использования в рецептах.

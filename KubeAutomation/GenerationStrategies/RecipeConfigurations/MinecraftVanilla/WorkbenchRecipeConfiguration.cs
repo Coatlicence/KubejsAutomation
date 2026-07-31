@@ -1,12 +1,13 @@
-﻿using System;
+﻿using KubeAutomation.Instruments;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static KubeAutomation.GenerationStrategies.RecipeConfigurations.WorkbenchRecipeConfiguration;
+using static KubeAutomation.GenerationStrategies.RecipeConfigurations.MinecraftVanilla.WorkbenchRecipeConfiguration;
 
-namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+namespace KubeAutomation.GenerationStrategies.RecipeConfigurations.MinecraftVanilla
 {
     public class WorkbenchRecipeConfiguration : BaseRecipeConfiguration
     {

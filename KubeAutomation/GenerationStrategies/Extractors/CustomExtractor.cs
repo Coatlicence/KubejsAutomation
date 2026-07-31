@@ -1,7 +1,7 @@
 ﻿using Esprima.Ast;
 using KubeAutomation.GenerationStrategies.Extractors;
-using KubeAutomation.GenerationStrategies.Generators;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode;
 using System;
 using System.Text.Json.Nodes;
 

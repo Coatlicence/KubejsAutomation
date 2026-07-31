@@ -1,4 +1,4 @@
-﻿namespace KubeAutomation.GenerationStrategies.RecipeConfigurations
+﻿namespace KubeAutomation.Instruments
 {
     /// <summary>
     /// Мета-информация о типе рецепта: где и как его регистрировать.

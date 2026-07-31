@@ -1,6 +1,7 @@
 ﻿using Esprima.Ast;
 using KubeAutomation.GenerationStrategies.Parsing;
 using KubeAutomation.GenerationStrategies.RecipeConfigurations;
+using KubeAutomation.GenerationStrategies.RecipeConfigurations.RawCode;
 
 public class RawCodeExtractor : IRecipeExtractor
 {

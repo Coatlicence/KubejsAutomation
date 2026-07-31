@@ -158,7 +158,6 @@ namespace KubeAutomation.GenerationStrategies.Parsing
                     configs.Add(config);
                 }
             }
-            // Если никто не взял — узел игнорируется (или можно добавить RawCode для всего подряд)
         }
     }
 }
