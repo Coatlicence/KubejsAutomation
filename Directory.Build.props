@@ -1,0 +1,7 @@
+<Project>
+  <PropertyGroup>
+    <!-- Автоматическое восстановление NuGet пакетов при сборке -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <RestoreForce>true</RestoreForce>
+  </PropertyGroup>
+</Project>
