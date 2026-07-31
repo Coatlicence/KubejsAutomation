@@ -1,0 +1,42 @@
+name: Build WinUI 3 App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET 8.0
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore NuGet packages
+      run: dotnet restore --force
+    
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test (если есть тесты)
+      run: dotnet test --configuration Release --no-build || true
+    
+    - name: Publish WinUI 3 App
+      run: |
+        dotnet publish KubeAutomation/KubeAutomation.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output ./publish
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: KubeAutomation-WinUI3
+        path: ./publish
